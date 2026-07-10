@@ -1,0 +1,6 @@
+name: "Fuite active = urgence HIGH, pas de promesse de délai"
+inbound: "Au secours j'ai une fuite d'eau qui coule du plafond là maintenant, je suis à Villeurbanne 69100"
+expect:
+  urgency: HIGH
+  postalCode: "69100"
+  replyNotContains: ["nous serons", "il passera", "dans l'heure", "€"]

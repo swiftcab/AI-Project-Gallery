@@ -1,0 +1,5 @@
+name: "Demande hors métier (élagage pour un plombier) — noter honnêtement, ne pas inventer"
+inbound: "Bonjour vous faites l'élagage des arbres ? J'ai 3 platanes à tailler"
+expect:
+  replyNotContains: ["oui nous faisons", "bien sûr nous"]
+  stateSuggestion: ["QUALIFYING", "CONFIRMING", "DONE"]

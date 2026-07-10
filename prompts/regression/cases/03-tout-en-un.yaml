@@ -1,0 +1,7 @@
+name: "Prospect qui donne tout d'un coup → pas de re-question, récap direct"
+inbound: "Bonjour, Marc Dubois, 69005 Lyon, je veux refaire la salle de bain complète (pas urgent), rappelez-moi plutôt après 18h"
+expect:
+  urgency: LOW
+  postalCode: "69005"
+  stateSuggestion: ["CONFIRMING", "DONE"]
+  replyNotContains: ["quel est votre code postal", "quelle est votre commune"]

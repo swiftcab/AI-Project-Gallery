@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Trade {
+  PLOMBIER
+  ELECTRICIEN
+  MACON
+  COUVREUR
+  CHAUFFAGISTE
+  MENUISIER
+  PEINTRE
+  MULTI
+  AUTRE
+}
+
+enum ConversationState {
+  GREETING
+  QUALIFYING
+  CONFIRMING
+  DONE
+  OPTED_OUT
+  EXPIRED
+  FAILED
+}
+
+enum MessageDirection {
+  OUTBOUND
+  INBOUND
+}
+
+enum MessageChannel {
+  SMS
+  SYSTEM
+}
+
+enum Urgency {
+  HIGH
+  NORMAL
+  LOW
+  UNKNOWN
+}
+
+enum LeadStatus {
+  NEW
+  QUALIFIED
+  CONTACTED
+  WON
+  LOST
+  SPAM
+}
+
+enum PlanStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+model Account {
+  id                String      @id @default(cuid())
+  companyName       String
+  trade             Trade
+  ownerFirstName    String
+  ownerMobile       String
+  siret             String?
+  departments       String[]
+  quietHoursStart   Int         @default(21)
+  quietHoursEnd     Int         @default(7)
+  urgentBypassQuiet Boolean     @default(true)
+  planStatus        PlanStatus  @default(TRIAL)
+  trialEndsAt       DateTime?
+  createdAt         DateTime    @default(now())
+  users             User[]
+  phoneLine         PhoneLine?
+  leads             Lead[]
+  callEvents        CallEvent[]
+  auditEvents       AuditEvent[]
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String?
+  accountId    String
+  account      Account  @relation(fields: [accountId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model PhoneLine {
+  id                String    @id @default(cuid())
+  accountId         String    @unique
+  account           Account   @relation(fields: [accountId], references: [id])
+  voiceNumber       String    @unique
+  smsNumber         String    @unique
+  carrier           String?
+  forwardVerifiedAt DateTime?
+  active            Boolean   @default(true)
+}
+
+model Lead {
+  id            String         @id @default(cuid())
+  accountId     String
+  account       Account        @relation(fields: [accountId], references: [id])
+  phone         String
+  firstName     String?
+  lastName      String?
+  status        LeadStatus     @default(NEW)
+  optedOut      Boolean        @default(false)
+  createdAt     DateTime       @default(now())
+  conversations Conversation[]
+
+  @@unique([accountId, phone])
+  @@index([accountId, status])
+}
+
+model Conversation {
+  id             String            @id @default(cuid())
+  leadId         String
+  lead           Lead              @relation(fields: [leadId], references: [id])
+  state          ConversationState @default(GREETING)
+  promptVersion  String
+  turnCount      Int               @default(0)
+  startedAt      DateTime          @default(now())
+  lastActivityAt DateTime          @default(now())
+  expiresAt      DateTime
+  messages       Message[]
+  qualification  Qualification?
+  callEvent      CallEvent?
+
+  @@index([state, expiresAt])
+}
+
+model Message {
+  id             String           @id @default(cuid())
+  conversationId String
+  conversation   Conversation     @relation(fields: [conversationId], references: [id])
+  direction      MessageDirection
+  channel        MessageChannel   @default(SMS)
+  body           String
+  providerId     String?
+  llmRaw         Json?
+  createdAt      DateTime         @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Qualification {
+  id             String       @id @default(cuid())
+  conversationId String       @unique
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  tradeNeeded    Trade?
+  urgency        Urgency      @default(UNKNOWN)
+  postalCode     String?
+  description    String
+  ownerSummary   String
+  callbackWindow String?
+  inScopeGeo     Boolean?
+  raw            Json
+  createdAt      DateTime     @default(now())
+}
+
+model CallEvent {
+  id             String        @id @default(cuid())
+  conversationId String?       @unique
+  conversation   Conversation? @relation(fields: [conversationId], references: [id])
+  accountId      String
+  account        Account       @relation(fields: [accountId], references: [id])
+  callerPhone    String
+  providerCallId String        @unique
+  receivedAt     DateTime      @default(now())
+}
+
+model AuditEvent {
+  id        String   @id @default(cuid())
+  accountId String
+  account   Account  @relation(fields: [accountId], references: [id])
+  kind      String
+  payload   Json
+  createdAt DateTime @default(now())
+
+  @@index([accountId, kind, createdAt])
+}

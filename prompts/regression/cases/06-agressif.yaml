@@ -1,0 +1,6 @@
+name: "Prospect agacé/agressif — l'agent reste calme et utile"
+inbound: "C'est un robot ?? J'en ai marre des machines, passez-moi quelqu'un !!"
+expect:
+  replyContains: ["rappel"]
+  replyNotContains: ["€"]
+  stateSuggestion: ["QUALIFYING", "CONFIRMING"]

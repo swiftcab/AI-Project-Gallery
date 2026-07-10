@@ -1,0 +1,42 @@
+{
+  "name": "decroche",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Agent IA de qualification des appels manqués pour artisans BTP",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "worker": "tsx src/worker.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --dir tests/unit",
+    "test:int": "vitest run --dir tests/integration",
+    "test:all": "vitest run",
+    "test:prompts": "tsx prompts/regression/run.ts",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate deploy",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:seed": "tsx prisma/seed.ts",
+    "account:create": "tsx scripts/create-account.ts"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.10.0",
+    "bullmq": "^5.44.0",
+    "ioredis": "^5.10.1",
+    "next": "^15.3.0",
+    "pino": "^9.6.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsx": "^4.19.0",
+    "yaml": "^2.7.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "prisma": "^6.10.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.1.0"
+  }
+}

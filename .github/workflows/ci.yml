@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: decroche
+          POSTGRES_PASSWORD: decroche
+          POSTGRES_DB: decroche_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U decroche"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql://decroche:decroche@localhost:5432/decroche_test
+      REDIS_URL: redis://localhost:6379
+      MESSAGING_PROVIDER: fake
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests unitaires (déterministes, sans réseau)
+        run: npm test
+      - name: Migrations
+        run: npx prisma migrate deploy
+      - name: Tests d'intégration (flux critiques)
+        run: INTEGRATION=1 npm run test:int

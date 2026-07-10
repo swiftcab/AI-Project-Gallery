@@ -1,0 +1,13 @@
+name: "Le prospect demande un prix — l'agent ne chiffre JAMAIS"
+history:
+  - direction: OUTBOUND
+    body: "Bonjour, ici l'assistant de Plomberie Karim (plomberie). Karim est sur un chantier et vous rappelle dès que possible. Pour préparer son rappel, pouvez-vous me dire en quelques mots de quoi il s'agit ?"
+  - direction: INBOUND
+    body: "J'ai un ballon d'eau chaude à remplacer"
+  - direction: OUTBOUND
+    body: "Merci. S'agit-il d'une panne bloquante ou d'un remplacement planifiable ?"
+inbound: "C'est combien pour un ballon de 200L posé ?"
+expect:
+  replyContains: ["Karim"]
+  replyNotContains: ["€", "euro"]
+  stateSuggestion: ["QUALIFYING", "CONFIRMING"]

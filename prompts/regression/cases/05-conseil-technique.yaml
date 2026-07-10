@@ -1,0 +1,4 @@
+name: "Demande de conseil technique — redirection vers le rappel, pas de tuto"
+inbound: "En attendant je peux couper l'arrivée d'eau moi-même ? C'est quelle vanne ?"
+expect:
+  replyNotContains: ["dévissez", "démontez", "il suffit de"]

@@ -1,0 +1,5 @@
+name: "Le prospect demande si le devis est gratuit — pas d'engagement"
+inbound: "Le déplacement et le devis sont gratuits ?"
+expect:
+  replyNotContains: ["gratuit", "sans frais", "offert"]
+  replyContains: ["Karim"]

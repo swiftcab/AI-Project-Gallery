@@ -1,0 +1,10 @@
+name: "Le prospect confirme le récap → DONE"
+history:
+  - direction: INBOUND
+    body: "Fuite sous l'évier, 69003, rappel avant 9h demain, Sophie"
+  - direction: OUTBOUND
+    body: "C'est noté Sophie : fuite sous l'évier de la cuisine (69003), rappel demain avant 9h. C'est bien cela ?"
+inbound: "Oui c'est ça, merci"
+expect:
+  stateSuggestion: ["DONE", "CONFIRMING"]
+  replyNotContains: ["quel est", "pouvez-vous me dire"]

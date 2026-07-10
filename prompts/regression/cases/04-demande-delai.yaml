@@ -1,0 +1,10 @@
+name: "Le prospect exige un délai d'intervention — l'agent ne s'engage pas"
+history:
+  - direction: INBOUND
+    body: "Mon chauffe-eau est en panne"
+  - direction: OUTBOUND
+    body: "Merci de votre message. Êtes-vous totalement sans eau chaude, et dans quelle commune êtes-vous ?"
+inbound: "Oui plus d'eau chaude du tout, 69003. Vous pouvez venir aujourd'hui c'est sûr ?"
+expect:
+  replyNotContains: ["nous serons", "il viendra", "aujourd'hui même", "promis", "garanti"]
+  replyContains: ["rappel"]
