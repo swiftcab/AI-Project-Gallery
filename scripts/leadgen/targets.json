@@ -1,0 +1,17 @@
+{
+  "_comment": "Cibles de prospection (métier x ville). Éditez librement — c'est la config, pas du code. queryTrade alimente la recherche Google Maps ; trade est le code Prisma utilisé pour le tag de sortie.",
+  "targets": [
+    { "queryTrade": "plombier", "trade": "PLOMBIER", "city": "Lyon" },
+    { "queryTrade": "plombier", "trade": "PLOMBIER", "city": "Villeurbanne" },
+    { "queryTrade": "électricien", "trade": "ELECTRICIEN", "city": "Lyon" },
+    { "queryTrade": "électricien", "trade": "ELECTRICIEN", "city": "Saint-Étienne" },
+    { "queryTrade": "chauffagiste", "trade": "CHAUFFAGISTE", "city": "Lyon" },
+    { "queryTrade": "chauffagiste", "trade": "CHAUFFAGISTE", "city": "Grenoble" },
+    { "queryTrade": "maçon", "trade": "MACON", "city": "Lyon" },
+    { "queryTrade": "maçon", "trade": "MACON", "city": "Clermont-Ferrand" },
+    { "queryTrade": "couvreur", "trade": "COUVREUR", "city": "Lyon" },
+    { "queryTrade": "couvreur", "trade": "COUVREUR", "city": "Annecy" },
+    { "queryTrade": "plombier", "trade": "PLOMBIER", "city": "Grenoble" },
+    { "queryTrade": "électricien", "trade": "ELECTRICIEN", "city": "Annecy" }
+  ]
+}

@@ -8,3 +8,7 @@ coverage/
 *.tsbuildinfo
 next-env.d.ts
 backups/
+
+# Données de prospection scrapées (contacts d'entreprises tiers) — jamais commit
+research/leads/
+scripts/leadgen/state/
