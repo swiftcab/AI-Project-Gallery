@@ -13,7 +13,7 @@ const OPERATORS: { name: string; activate: string; note?: string }[] = [
 
 export default function ActivationPage() {
   return (
-    <main style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px", fontFamily: "system-ui" }}>
+    <main style={{ maxWidth: 720, margin: "0 auto", padding: "32px 20px", fontFamily: "system-ui", color: "#1a1a1a", background: "#fafafa", minHeight: "100vh" }}>
       <h1>Activer le renvoi des appels manqués</h1>
       <p>
         Remplacez <code>NUMERO</code> par le numéro Décroché qui vous a été attribué, puis composez

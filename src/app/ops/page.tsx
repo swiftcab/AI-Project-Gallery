@@ -20,7 +20,7 @@ export default async function OpsPage() {
   const stat = { display: "inline-block", background: "#fff", border: "1px solid #e5e5e5", borderRadius: 10, padding: "12px 20px", marginRight: 12 } as const;
 
   return (
-    <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px", fontFamily: "system-ui" }}>
+    <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px", fontFamily: "system-ui", color: "#1a1a1a", background: "#fafafa", minHeight: "100vh" }}>
       <h1>Ops — Décroché</h1>
 
       <div style={{ marginBottom: 24 }}>

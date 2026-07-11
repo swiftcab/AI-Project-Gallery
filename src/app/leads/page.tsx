@@ -27,7 +27,7 @@ export default async function LeadsPage() {
   );
 
   return (
-    <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px", fontFamily: "system-ui" }}>
+    <main style={{ maxWidth: 900, margin: "0 auto", padding: "32px 20px", fontFamily: "system-ui", color: "#1a1a1a", background: "#fafafa", minHeight: "100vh" }}>
       <h1>Leads ({leads.length})</h1>
       {leads.length === 0 && <p>Aucun lead pour le moment. Testez en appelant votre numéro sans décrocher.</p>}
       {leads.map((lead) => {
