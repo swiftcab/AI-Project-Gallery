@@ -7,18 +7,18 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "worker": "tsx src/worker.ts",
+    "worker": "tsx --env-file-if-exists=.env src/worker.ts",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --dir tests/unit",
     "test:int": "vitest run --dir tests/integration",
     "test:all": "vitest run",
-    "test:prompts": "tsx prompts/regression/run.ts",
+    "test:prompts": "tsx --env-file-if-exists=.env prompts/regression/run.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:migrate:dev": "prisma migrate dev",
-    "db:seed": "tsx prisma/seed.ts",
-    "account:create": "tsx scripts/create-account.ts",
-    "leads:generate": "tsx scripts/leadgen/run.ts"
+    "db:seed": "tsx --env-file-if-exists=.env prisma/seed.ts",
+    "account:create": "tsx --env-file-if-exists=.env scripts/create-account.ts",
+    "leads:generate": "tsx --env-file-if-exists=.env scripts/leadgen/run.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.10.0",

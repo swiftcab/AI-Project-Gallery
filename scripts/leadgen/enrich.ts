@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { getLeadgenConfig } from "./config";
 import type { CandidateLead } from "./criteria";
+import { DeepSeekProvider } from "../../src/lib/llm/deepseek";
 
 const enrichmentSchema = z.object({
   icebreaker: z.string().min(1).max(220),
@@ -31,37 +31,25 @@ Ne JAMAIS inventer d'informations sur l'entreprise (pas d'avis clients
 fabriqués, pas de faits non fournis). Réponds UNIQUEMENT en JSON :
 {"icebreaker": "...", "priority": "HIGH|MEDIUM|LOW", "reason": "..."}`;
 
-async function callGemini(userContent: string): Promise<string> {
-  const cfg = getLeadgenConfig();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${cfg.GEMINI_MODEL}:generateContent?key=${cfg.GEMINI_API_KEY}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
-      contents: [{ role: "user", parts: [{ text: userContent }] }],
-      generationConfig: { responseMimeType: "application/json", temperature: 0.4 },
-    }),
-    signal: AbortSignal.timeout(20_000),
+const llm = new DeepSeekProvider();
+
+async function callDeepSeek(userContent: string): Promise<string> {
+  const res = await llm.chatJSON({
+    messages: [
+      { role: "system", content: SYSTEM_PROMPT },
+      { role: "user", content: userContent },
+    ],
+    timeoutMs: 20_000,
   });
-  if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    throw new Error(`Gemini HTTP ${res.status}: ${body.slice(0, 300)}`);
-  }
-  const data = (await res.json()) as {
-    candidates?: { content?: { parts?: { text?: string }[] } }[];
-  };
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("Réponse Gemini vide");
-  return text;
+  return res.content;
 }
 
-/** Enrichit une liste de leads avec un léger throttle (évite le rate-limit Gemini). */
+/** Enrichit une liste de leads avec un léger throttle (reste courtois vis-à-vis de l'API). */
 export async function enrichLeads(leads: CandidateLead[]): Promise<EnrichedLead[]> {
   const out: EnrichedLead[] = [];
   for (const lead of leads) {
     try {
-      const raw = await callGemini(
+      const raw = await callDeepSeek(
         JSON.stringify({
           entreprise: lead.companyName,
           metier: lead.trade,

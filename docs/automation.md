@@ -8,9 +8,17 @@ interagit avec le système sans jamais avoir besoin d'un accès SSH direct.
 
 Deux raisons, pas une seule commodité technique :
 1. **Réseau** : une session Claude Code dans le cloud (comme celle qui a
-   écrit ce code) n'a pas d'accès sortant arbitraire — testé, le port 22
-   est bloqué par la politique réseau de l'environnement. Un agent cloud ne
-   peut physiquement pas se connecter en SSH à votre VPS.
+   écrit ce code) n'a pas d'accès sortant arbitraire — testé, le port 22 est
+   bloqué par la politique réseau de l'environnement, tout comme les appels
+   sortants vers des API tierces non explicitement autorisées (ex.
+   `api.apify.com` renvoie un 403 "host not in allowlist" quand on essaie
+   d'y tester `scripts/leadgen` depuis cette session). Un agent cloud ne peut
+   physiquement pas se connecter en SSH à votre VPS, ni forcément appeler
+   n'importe quelle API tierce. **Conséquence pratique** : les scripts qui
+   appellent des API externes (`leads:generate`, notamment) doivent être
+   testés/exécutés depuis votre machine ou depuis le VPS (via Hermes), pas
+   depuis une session Claude Code cloud — le code est prêt, seule
+   l'exécution doit se faire depuis un environnement non sandboxé.
 2. **Sécurité** : même quand c'est techniquement possible (Hermes, qui
    tourne *sur* le VPS, en est capable), donner un accès shell root complet
    à un agent pour une tâche qui ne nécessite que "créer un compte" ou
@@ -33,21 +41,17 @@ variables → Actions → New repository secret) :
 
 | Secret | Valeur |
 |---|---|
-| `DEPLOY_HOST` | IP publique de votre VPS |
+| `DEPLOY_HOST` | IP publique de votre VPS (`187.77.171.238`) |
 | `DEPLOY_USER` | `deploy` (créé par `ops/bootstrap.sh`) |
-| `DEPLOY_SSH_KEY` | clé privée **dédiée**, générée en local (jamais réutilisée ailleurs) |
+| `DEPLOY_SSH_KEY` | clé privée **dédiée**, générée PAR le VPS lui-même |
 
-Génération de la clé (en local, sur votre machine — pas dans ce chat) :
-```bash
-ssh-keygen -t ed25519 -f decroche_deploy_key -C deploy@decroche -N ""
-```
-- Collez le contenu de `decroche_deploy_key` (la **privée**) dans le secret
-  GitHub `DEPLOY_SSH_KEY`.
-- Collez le contenu de `decroche_deploy_key.pub` (la **publique**) dans
-  `/home/deploy/.ssh/authorized_keys` sur le VPS (`ops/bootstrap.sh` prépare
-  le fichier, vide, prêt à recevoir cette clé).
-- Supprimez la copie locale des deux fichiers une fois faite (ou gardez-la
-  dans un gestionnaire de secrets, jamais dans ce repo).
+La clé n'est **pas** générée en local (évite les soucis de quoting
+`ssh-keygen` sous PowerShell/cmd) : `ops/bootstrap.sh` la génère directement
+sur le VPS au premier lancement, ajoute la clé publique dans
+`/home/deploy/.ssh/authorized_keys` automatiquement, et affiche la clé
+**privée** une seule fois à la fin de son exécution — il suffit de la copier
+depuis le Terminal Hostinger et de la coller dans le secret GitHub
+`DEPLOY_SSH_KEY`. Rien à installer ni taper sur votre machine.
 
 **Déclenchement manuel** (utile pour Cowork/Hermes ou vous-même, sans push) :
 ```bash
@@ -142,17 +146,31 @@ rien d'autre à changer dans le code une fois le DNS branché.
 
 ## Checklist de mise en route (dans l'ordre)
 
-1. [ ] `ssh-keygen` en local → clé de déploiement (voir Couche 1)
-2. [ ] Coller la clé **publique** dans le Terminal Hostinger, dans
-       `ops/bootstrap.sh` avant de le lancer (ou juste après, dans
-       `/home/deploy/.ssh/authorized_keys`)
-3. [ ] Lancer `ops/bootstrap.sh` dans le Terminal Hostinger (root)
+1. [x] DNS `qualifyourlead.com` → `187.77.171.238` (déjà fait, vérifié 2026-07-11)
+2. [ ] Lancer `ops/bootstrap.sh` dans le Terminal Hostinger (root) — il génère
+       la clé de déploiement lui-même et l'affiche une seule fois à la fin
+3. [ ] Copier la clé privée affichée → secret GitHub `DEPLOY_SSH_KEY`
 4. [ ] Compléter `/opt/decroche/.env` sur le VPS (secrets réels, y compris
-       `OPS_API_TOKEN`)
-5. [ ] Pointer le DNS `qualifyourlead.com` vers l'IP du VPS
-6. [ ] `certbot --nginx -d qualifyourlead.com -d www.qualifyourlead.com`
-7. [ ] Premier démarrage manuel (commandes dans `ops/bootstrap.sh` / runbook §3)
-8. [ ] Ajouter les 3 secrets GitHub (`DEPLOY_HOST`, `DEPLOY_USER`, `DEPLOY_SSH_KEY`)
-9. [ ] Push sur la branche → vérifier que le workflow `deploy.yml` passe au vert
-10. [ ] Configurer les webhooks Twilio/smsmode vers `https://qualifyourlead.com/api/hooks/*`
-11. [ ] Onboarder le premier compte via `/ops` ou `/api/ops/accounts`
+       `OPS_API_TOKEN`, `DEEPSEEK_API_KEY`, `APIFY_API_TOKEN`)
+5. [ ] `certbot --nginx -d qualifyourlead.com -d www.qualifyourlead.com`
+6. [ ] Premier démarrage manuel (commandes affichées par `ops/bootstrap.sh`)
+7. [ ] Ajouter `DEPLOY_HOST=187.77.171.238` et `DEPLOY_USER=deploy` dans GitHub
+8. [ ] Push sur la branche → vérifier que le workflow `deploy.yml` passe au vert
+9. [ ] Configurer les webhooks Twilio/smsmode vers `https://qualifyourlead.com/api/hooks/*`
+10. [ ] Onboarder le premier compte via `/ops` ou `/api/ops/accounts`
+
+## Handoff à un agent (Cowork/Hermes)
+
+Si vous voulez que Hermes (déjà installé sur le VPS) exécute les étapes 2-6
+lui-même plutôt que de les taper à la main dans le Terminal Hostinger, donnez-
+lui exactement cette instruction (il a l'accès shell local que je n'ai pas) :
+
+> Clone `https://github.com/swiftcab/AI-Project-Gallery.git` (branche
+> `claude/construction-ai-sales-agent-felxyp`) si ce n'est pas déjà fait dans
+> `/opt/decroche`, puis exécute `ops/bootstrap.sh` avec
+> `REPO_URL=https://github.com/swiftcab/AI-Project-Gallery.git BRANCH=claude/construction-ai-sales-agent-felxyp`.
+> À la fin, affiche-moi la clé privée imprimée pour que je la colle dans les
+> secrets GitHub, et dis-moi quelles valeurs il reste à renseigner dans `.env`.
+
+Les étapes 7-10 (secrets GitHub, webhooks Twilio/smsmode) touchent des
+comptes tiers hors du VPS : gardez-les manuelles, une seule fois.

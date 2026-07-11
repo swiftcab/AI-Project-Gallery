@@ -9,13 +9,20 @@ Génère un CSV de leads artisans BTP qualifiés selon les critères de
 2. **Filtres déterministes** (`criteria.ts`, zéro LLM, gratuits) : mobile
    06/07 visible, 10-80 avis Google, pas "ouvert 24/7", dédoublonnage par
    téléphone (y compris contre les runs précédents via `state/seen-phones.json`).
-3. **Enrichissement Gemini** (`enrich.ts`) — 1 accroche de contact + priorité
-   HIGH/MEDIUM/LOW par lead, sans jamais inventer de fait sur l'entreprise.
+3. **Enrichissement DeepSeek** (`enrich.ts`, réutilise `src/lib/llm/deepseek.ts`
+   — même fournisseur que le produit, un seul compte/budget à suivre) — 1
+   accroche de contact + priorité HIGH/MEDIUM/LOW par lead, sans jamais
+   inventer de fait sur l'entreprise.
 4. **Export CSV** trié par priorité dans `research/leads/leads-<date>.csv`.
+
+Gemini reste configurable (`GEMINI_API_KEY`/`GEMINI_MODEL`) mais **n'est pas
+utilisé par défaut** : réservé à une future expérimentation de collecte via
+son "grounding" Google Maps/Places, en complément d'Apify — pas branché tant
+que ce n'est pas nécessaire (cf. "pas d'implémentation à moitié").
 
 ## Utilisation
 ```bash
-cp .env.example .env   # puis renseigner APIFY_API_TOKEN + GEMINI_API_KEY
+cp .env.example .env   # puis renseigner APIFY_API_TOKEN (DEEPSEEK_API_KEY est déjà celle du produit)
 npm run leads:generate                 # 100 leads (LEADGEN_MAX_LEADS)
 npm run leads:generate -- --max 20     # test rapide, moins cher
 ```

@@ -14,6 +14,26 @@ Les entrées sont ajoutées par ordre antéchronologique (plus récent en haut).
 
 ---
 
+## 2026-07-11 — `npm run leads:generate` échoue "APIFY_API_TOKEN: Required" malgré un .env rempli
+- Symptôme : `getLeadgenConfig()` lève une erreur de config manquante alors
+  que `.env` contient bien `APIFY_API_TOKEN`.
+- Cause    : contrairement à Next.js (qui charge `.env` automatiquement pour
+  `next dev`/`build`/`start`), `tsx` ne charge JAMAIS `.env` tout seul. Tous
+  les scripts lancés via `tsx` directement (`worker.ts`, `prisma/seed.ts`,
+  `scripts/create-account.ts`, `scripts/leadgen/run.ts`,
+  `prompts/regression/run.ts`) étaient donc muets sur les variables d'env en
+  dehors de Docker (où `docker-compose.yml` les injecte via `env_file`).
+- Fix      : `package.json` — chaque script `tsx` passe désormais
+  `--env-file-if-exists=.env` (flag natif Node ≥ 20.12, pas de dépendance
+  `dotenv` ajoutée). `-if-exists` pour ne pas casser CI/Docker où les
+  variables sont déjà dans l'environnement sans fichier `.env`.
+- Test     : validé manuellement (`npm run leads:generate -- --max 5` passe
+  la validation de config après le fix ; échoue ensuite sur un blocage réseau
+  propre à la sandbox de la session Claude Code, pas un bug applicatif —
+  cf. docs/automation.md).
+
+---
+
 ## 2026-07-10 — Jobs BullMQ rejetés : "Custom Id cannot contain :"
 - Symptôme : tests d'intégration rouges sur `startConversation` et `agentTurn` ;
   BullMQ levait `Custom Id cannot contain :` à l'enqueue.

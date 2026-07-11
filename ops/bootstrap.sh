@@ -14,16 +14,23 @@ REPO_URL="${REPO_URL:?REPO_URL requis, ex: https://github.com/swiftcab/AI-Projec
 BRANCH="${BRANCH:-claude/construction-ai-sales-agent-felxyp}"
 APP_DIR="/opt/decroche"
 
-echo "== 1/6 Utilisateur déploiement =="
+echo "== 1/6 Utilisateur déploiement + clé de déploiement (générée ICI, pas en local) =="
 if ! id deploy >/dev/null 2>&1; then
   adduser --disabled-password --gecos "" deploy
   usermod -aG sudo deploy
 fi
 mkdir -p /home/deploy/.ssh && chmod 700 /home/deploy/.ssh
 touch /home/deploy/.ssh/authorized_keys && chmod 600 /home/deploy/.ssh/authorized_keys
+
+DEPLOY_KEY=/home/deploy/.ssh/decroche_deploy_key
+if [ ! -f "$DEPLOY_KEY" ]; then
+  su - deploy -c "ssh-keygen -t ed25519 -f $DEPLOY_KEY -C deploy@decroche -N ''"
+  cat "$DEPLOY_KEY.pub" >> /home/deploy/.ssh/authorized_keys
+fi
 chown -R deploy:deploy /home/deploy/.ssh
-echo "→ Ajoutez la CLÉ PUBLIQUE de déploiement dans /home/deploy/.ssh/authorized_keys"
-echo "  (générée en local avec: ssh-keygen -t ed25519 -f decroche_deploy_key -C deploy@decroche -N '')"
+chmod 600 /home/deploy/.ssh/authorized_keys
+
+DEPLOY_PRIVATE_KEY_PRINTED="$(cat "$DEPLOY_KEY")"
 
 echo "== 2/6 Durcissement SSH/pare-feu =="
 sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/; s/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
@@ -66,13 +73,24 @@ cat <<EOF
 == Terminé ==
 Reste à faire manuellement :
   1. Compléter $APP_DIR/.env (secrets réels)
-  2. Ajouter la clé publique de déploiement dans /home/deploy/.ssh/authorized_keys
-  3. Pointer le DNS de qualifyourlead.com (A record) vers l'IP de ce VPS
-  4. Premier démarrage :
+  2. Premier démarrage :
        cd $APP_DIR && docker compose up -d postgres redis
        docker compose run --rm app npx prisma migrate deploy
        docker compose up -d app worker
-  5. certbot --nginx -d qualifyourlead.com -d www.qualifyourlead.com
-  6. Ajouter les 3 secrets GitHub (DEPLOY_HOST, DEPLOY_USER=deploy, DEPLOY_SSH_KEY)
-     → à partir de là, chaque push déploie automatiquement (.github/workflows/deploy.yml)
+  3. certbot --nginx -d qualifyourlead.com -d www.qualifyourlead.com
+  4. Ajouter les 3 secrets GitHub (Settings → Secrets and variables → Actions) :
+       DEPLOY_HOST = $(curl -s -4 ifconfig.me || echo "<IP de ce VPS>")
+       DEPLOY_USER = deploy
+       DEPLOY_SSH_KEY = la clé privée ci-dessous (copier TOUT le bloc, BEGIN/END inclus)
+
+===== CLÉ PRIVÉE DE DÉPLOIEMENT (à coller dans le secret GitHub DEPLOY_SSH_KEY) =====
+$DEPLOY_PRIVATE_KEY_PRINTED
+===== FIN DE LA CLÉ =====
+
+Cette clé n'existe que sur ce VPS (dans /home/deploy/.ssh/) et dans le secret
+GitHub une fois collée — copiez-la maintenant, elle ne sera pas raffichée par
+un futur relancement de ce script (le "if [ ! -f ... ]" au-dessus le saute).
+
+→ Une fois les secrets ajoutés, chaque push déploie automatiquement
+  (.github/workflows/deploy.yml) — plus aucune étape manuelle de déploiement.
 EOF
