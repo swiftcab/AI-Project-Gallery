@@ -57,6 +57,27 @@ FORMAT DE COMMUNICATION (Telegram) :
   exacte, le coût/risque, et ta recommandation. Jamais plus de 5 lignes.
 ```
 
+## Surveillance en couches (watchdog)
+
+Principe emprunté aux équipes de maintenance sérieuses : **jamais un LLM en
+première ligne**. Le non-déterminisme et la latence d'un agent n'ont rien à
+faire dans la détection ; ils excellent dans le diagnostic.
+
+| Couche | Quoi | Fréquence | Répare |
+|---|---|---|---|
+| 0 | Healthchecks Docker + `restart: unless-stopped` (+ autoheal) | secondes | redémarrages instantanés |
+| 1 | `ops/watchdog.sh` (cron shell, déterministe) | 5 min | restarts anti-flapping (max 3/h), purge disque, renew TLS, détection queue bloquée/backup manquant → écrit `ops/state/alerts.json` |
+| 2 | Hermes (cron « sentinelle », voir `HERMES.md`) | 30 min | lit alerts.json, diagnostique via logs + runbook, répare dans son périmètre, trace dans `ops/state/incidents.md` |
+| 3 | Fondateur (Telegram) / CTO (repo) | à la demande | décisions, changements de code |
+
+Le silence du watchdog est lui-même surveillé : il pousse un heartbeat vers
+un moniteur *Push* Uptime Kuma (option `KUMA_PUSH_URL` de
+`ops/install-watchdog.sh`) — si le cron meurt, Kuma alerte.
+
+Mise en place : `sudo bash /opt/decroche/ops/install-watchdog.sh` puis
+donner `HERMES.md` à Hermes (section SETUP — il crée ses crons lui-même
+avec son outil cron natif, livraison Telegram).
+
 ## Rapport quotidien (mis en place côté CTO)
 
 Une Routine planifiée tourne dans la session Claude Code du fondateur,

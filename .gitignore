@@ -12,3 +12,4 @@ backups/
 # Données de prospection scrapées (contacts d'entreprises tiers) — jamais commit
 research/leads/
 scripts/leadgen/state/
+ops/state/
