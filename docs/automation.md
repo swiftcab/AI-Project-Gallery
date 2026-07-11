@@ -119,10 +119,19 @@ simple et plus sûr tant que le volume reste artisanal.
 
 ## Domaine — qualifyourlead.com
 
-1. Récupérer l'IP publique du VPS (panel Hostinger → VPS → Aperçu général).
-2. Chez le registrar du domaine (ou dans Hostinger si le domaine y est aussi
-   acheté) : ajouter un enregistrement **A** `@` → IP du VPS, et un
-   enregistrement **A** (ou CNAME) `www` → IP du VPS (ou `qualifyourlead.com`).
+VPS : `srv1445056.hstgr.cloud`, IP publique **187.77.171.238** (relevé
+2026-07-11 dans le panel Hostinger — si le VPS est recréé un jour, cette IP
+change et les enregistrements DNS ci-dessous doivent être mis à jour, mais
+rien dans le code ne la code en dur : `.github/workflows/deploy.yml` lit
+`secrets.DEPLOY_HOST`).
+
+1. Chez le registrar du domaine (Hostinger → Domaines → Zone DNS, si
+   `qualifyourlead.com` y est aussi enregistré ; sinon chez le registrar où
+   il a été acheté) : ajouter
+   - Enregistrement **A**, hôte `@`, valeur `187.77.171.238`
+   - Enregistrement **A**, hôte `www`, valeur `187.77.171.238`
+2. Récupérer l'IP publique du VPS (panel Hostinger → VPS → Aperçu général) —
+   utile pour vérifier qu'elle n'a pas changé avant de relancer certbot.
 3. Propagation : quelques minutes à quelques heures. Vérifier avec
    `dig qualifyourlead.com +short`.
 4. Une fois propagé : `certbot --nginx -d qualifyourlead.com -d www.qualifyourlead.com`
