@@ -3,8 +3,12 @@
  *   npm run account:create -- --company "Plomberie Karim" --trade PLOMBIER \
  *     --owner Karim --mobile +33612345678 --voice +33900000001 --sms +33700000001 \
  *     --departments 69,01 --email karim@example.fr
+ *
+ * Même logique que POST /api/ops/accounts (src/lib/ops/createAccount.ts) —
+ * ce CLI est le point d'entrée humain, l'API le point d'entrée agent (Cowork/Hermes).
  */
-import { PrismaClient, Trade } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
+import { createPilotAccount } from "../src/lib/ops/createAccount";
 
 const prisma = new PrismaClient();
 
@@ -14,43 +18,31 @@ function arg(name: string): string | undefined {
 }
 
 async function main() {
-  const company = arg("company");
-  const trade = arg("trade") as Trade | undefined;
-  const owner = arg("owner");
-  const mobile = arg("mobile");
-  const voice = arg("voice");
-  const sms = arg("sms");
-  const email = arg("email");
   const departments = (arg("departments") ?? "").split(",").filter(Boolean);
 
-  if (!company || !trade || !owner || !mobile || !voice || !sms || !email) {
-    console.error("Arguments requis: --company --trade --owner --mobile --voice --sms --email [--departments 69,01]");
-    process.exit(1);
-  }
-  if (!Object.values(Trade).includes(trade)) {
-    console.error(`Trade invalide. Valeurs: ${Object.values(Trade).join(", ")}`);
-    process.exit(1);
-  }
-
-  const account = await prisma.account.create({
-    data: {
-      companyName: company,
-      trade,
-      ownerFirstName: owner,
-      ownerMobile: mobile,
-      departments,
-      trialEndsAt: new Date(Date.now() + 14 * 24 * 3600 * 1000),
-      users: { create: { email } },
-      phoneLine: { create: { voiceNumber: voice, smsNumber: sms } },
-    },
+  const account = await createPilotAccount(prisma, {
+    companyName: arg("company"),
+    trade: arg("trade"),
+    ownerFirstName: arg("owner"),
+    ownerMobile: arg("mobile"),
+    voiceNumber: arg("voice"),
+    smsNumber: arg("sms"),
+    email: arg("email"),
+    departments,
   });
+
   console.log(`Compte créé: ${account.id}`);
-  console.log(`→ Renvoi à configurer chez le client: *61*${voice}# (voir /activation)`);
+  console.log(`→ Renvoi à configurer chez le client: *61*${account.phoneLine?.voiceNumber}# (voir /activation)`);
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    if (e?.name === "ZodError") {
+      console.error("Arguments requis: --company --trade --owner --mobile --voice --sms --email [--departments 69,01]");
+      console.error(e.issues?.map((i: { path: unknown; message: string }) => `  - ${i.path}: ${i.message}`).join("\n"));
+    } else {
+      console.error(e);
+    }
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

@@ -1,0 +1,43 @@
+name: Deploy
+
+# Se déclenche sur push vers la branche de production choisie, ou manuellement
+# (utile pour que Cowork/Hermes redéploie à la demande via `gh workflow run`
+# ou l'API GitHub Actions — cf. docs/automation.md).
+on:
+  push:
+    branches: [claude/construction-ai-sales-agent-felxyp]
+  workflow_dispatch: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Déploiement via SSH sur le VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script_stop: true
+          script: |
+            set -e
+            cd /opt/decroche
+            git fetch origin
+            git checkout claude/construction-ai-sales-agent-felxyp
+            git reset --hard origin/claude/construction-ai-sales-agent-felxyp
+            docker compose build app worker
+            docker compose run --rm app npx prisma migrate deploy
+            docker compose up -d app worker
+            sleep 5
+            curl -fsS http://127.0.0.1:3000/api/health
+
+      - name: Vérification post-déploiement (site public)
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "https://qualifyourlead.com/api/health" || echo 000)
+            [ "$code" = "200" ] && echo "OK ($code)" && exit 0
+            echo "tentative $i: $code, retry dans 5s"
+            sleep 5
+          done
+          echo "Échec de vérification post-déploiement" >&2
+          exit 1

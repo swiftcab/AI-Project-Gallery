@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 
 /**
- * Protection HTTP Basic du dashboard pour la phase pilotes
- * (cf. docs/tech-debt.md #5 — remplacée par une vraie auth avant l'ouverture self-serve).
- * Les webhooks et le health check ne sont PAS derrière ce mur.
+ * Deux murs distincts :
+ * - HTTP Basic pour le dashboard humain (/leads, /activation, /ops) —
+ *   cf. docs/tech-debt.md #5, remplacé par une vraie auth avant self-serve.
+ * - Bearer token pour /api/ops/* (agents Cowork/Hermes) — vérifié dans
+ *   chaque route via src/lib/opsAuth.ts, PAS ici (le matcher exclut /api/ops
+ *   pour ne pas superposer les deux mécanismes sur les mêmes requêtes).
+ * Les webhooks et /api/health restent hors de tout mur.
  */
 export function middleware(req: NextRequest) {
   const user = process.env.DASHBOARD_USER ?? "admin";
@@ -23,5 +27,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/leads/:path*", "/activation/:path*"],
+  matcher: ["/leads/:path*", "/activation/:path*", "/ops/:path*"],
 };

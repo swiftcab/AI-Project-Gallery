@@ -1,10 +1,17 @@
 # Runbook de déploiement — VPS Hostinger
 
 Cible : VPS Hostinger KVM 2 (2 vCPU / 8 Go) ou supérieur, Ubuntu 24.04 LTS.
-Durée totale du premier déploiement : ~45 min. Tout est copiable-collable.
+Domaine : **qualifyourlead.com**. Durée totale du premier déploiement : ~45 min.
+
+⚠️ Ce runbook couvre le **bootstrap initial** (une seule fois). Une fois fait,
+les mises à jour suivantes passent par le pipeline CD automatique
+(`.github/workflows/deploy.yml`) à chaque push — voir `docs/automation.md`.
+`ops/bootstrap.sh` automatise les étapes 1 à 6 ci-dessous en un seul script à
+coller dans le Terminal Hostinger (panel.hostinger.com → VPS → Terminal).
 
 ## 0. Prérequis
-- Un domaine pointé sur l'IP du VPS (enregistrement A, ex. `app.decroche.fr`).
+- Domaine `qualifyourlead.com` avec le DNS pointé sur l'IP du VPS
+  (enregistrement A `@` + `www`).
 - Comptes fournisseurs : DeepSeek (clé API), Twilio (numéro voix FR 09),
   agrégateur SMS retenu au spike (smsmode : clé API + VMN).
 - Le repo accessible en clone (deploy key en lecture seule recommandée).
@@ -34,7 +41,7 @@ cp .env.example .env
 Éditer `/opt/decroche/.env` — **toutes** ces valeurs sont obligatoires en prod :
 ```
 NODE_ENV=production
-APP_BASE_URL=https://app.decroche.fr
+APP_BASE_URL=https://qualifyourlead.com
 SESSION_SECRET=$(openssl rand -hex 32)
 POSTGRES_PASSWORD=$(openssl rand -hex 24)
 DATABASE_URL=postgresql://decroche:<POSTGRES_PASSWORD>@postgres:5432/decroche
@@ -61,19 +68,18 @@ curl -fsS http://127.0.0.1:3000/api/health   # → {"status":"ok",...}
 ## 4. Nginx + SSL Certbot (10 min)
 ```bash
 sudo apt install -y nginx certbot python3-certbot-nginx
-sudo cp ops/nginx.conf /etc/nginx/sites-available/decroche
-sudo sed -i 's/decroche.example.fr/app.decroche.fr/g' /etc/nginx/sites-available/decroche
+sudo cp ops/nginx.conf /etc/nginx/sites-available/decroche  # domaine déjà qualifyourlead.com dedans
 sudo ln -s /etc/nginx/sites-available/decroche /etc/nginx/sites-enabled/
 sudo rm -f /etc/nginx/sites-enabled/default
 sudo nginx -t && sudo systemctl reload nginx
-sudo certbot --nginx -d app.decroche.fr   # renouvellement auto installé par certbot
+sudo certbot --nginx -d qualifyourlead.com   # renouvellement auto installé par certbot
 ```
 
 ## 5. Webhooks fournisseurs (5 min)
 - **Twilio** (numéro voix) : Voice → "A call comes in" → Webhook
-  `https://app.decroche.fr/api/hooks/voice` (POST). Vérification de signature
+  `https://qualifyourlead.com/api/hooks/voice` (POST). Vérification de signature
   active dès que `TWILIO_AUTH_TOKEN` est défini.
-- **smsmode** (VMN) : callback SMS entrant → `https://app.decroche.fr/api/hooks/sms`
+- **smsmode** (VMN) : callback SMS entrant → `https://qualifyourlead.com/api/hooks/sms`
   (POST JSON `{from, to, body}` — mapper les champs du fournisseur dans la
   config du callback).
 
@@ -96,9 +102,9 @@ décommenter la dernière ligne de `backup.sh`.
 ```bash
 docker compose --profile monitoring up -d uptime-kuma
 ```
-Ouvrir `https://app.decroche.fr/kuma/`, créer l'admin, puis 3 moniteurs :
-1. HTTP `https://app.decroche.fr/api/health` — mot-clé `"status":"ok"`, 60 s.
-2. HTTP `https://app.decroche.fr/` (landing), 300 s.
+Ouvrir `https://qualifyourlead.com/kuma/`, créer l'admin, puis 3 moniteurs :
+1. HTTP `https://qualifyourlead.com/api/health` — mot-clé `"status":"ok"`, 60 s.
+2. HTTP `https://qualifyourlead.com/` (landing), 300 s.
 3. Push (heartbeat) sur le cron de backup si souhaité.
 Alertes → email + (optionnel) webhook vers votre téléphone (ntfy.sh gratuit).
 
@@ -115,7 +121,11 @@ docker run -d --name autoheal --restart=always \
   -v /var/run/docker.sock:/var/run/docker.sock willfarrell/autoheal
 ```
 
-## 9. Mise à jour applicative (2 min, à chaque release)
+## 9. Mise à jour applicative — AUTOMATIQUE désormais
+Depuis la mise en place du pipeline CD (`docs/automation.md`), chaque `git push`
+sur la branche de production déclenche automatiquement : build, migration,
+redémarrage, vérification santé. Rien à taper manuellement.
+Commande manuelle équivalente (dépannage uniquement) :
 ```bash
 cd /opt/decroche
 git pull
@@ -124,8 +134,9 @@ docker compose run --rm app npx prisma migrate deploy
 docker compose up -d app worker
 curl -fsS http://127.0.0.1:3000/api/health
 ```
-Rollback : `git checkout <tag précédent>` puis mêmes commandes. Les migrations
-Prisma sont additives au MVP (pas de drop destructif sans backup préalable).
+Rollback : `git checkout <tag précédent>` puis mêmes commandes, ou relancer le
+workflow GitHub Actions sur un commit antérieur (`workflow_dispatch`). Les
+migrations Prisma sont additives au MVP (pas de drop destructif sans backup préalable).
 
 ## 10. Onboarding d'un client pilote (white-glove, ~15 min/client)
 1. Provisionner : 1 numéro voix Twilio FR + 1 VMN smsmode → noter les deux.
@@ -137,7 +148,7 @@ Prisma sont additives au MVP (pas de drop destructif sans backup préalable).
      --mobile +336... --voice +339... --sms +337... --departments 69,01 \
      --email karim@...
    ```
-4. Envoyer au client la page `https://app.decroche.fr/activation` + son code
+4. Envoyer au client la page `https://qualifyourlead.com/activation` + son code
    `*61*<numéro voix>#` selon son opérateur.
 5. Faire le test "wow" AVEC lui au téléphone : il appelle son numéro sans
    décrocher, vit la conversation, reçoit sa notif.
