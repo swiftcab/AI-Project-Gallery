@@ -81,9 +81,21 @@ echo '```'
 ls -la /etc/sudoers.d/ 2>/dev/null
 echo '```'
 
-echo "## 9. Docker (containers actifs, images)"
+echo "## 9. Docker — TOUS les conteneurs (pas seulement ceux de Décroché)"
 echo '```'
-docker ps --format '{{.Names}} {{.Image}} {{.Status}}' 2>/dev/null || echo "docker absent/inactif"
+docker ps -a --format '{{.Names}} {{.Image}} {{.Status}} {{.Ports}}' 2>/dev/null || echo "docker absent/inactif"
+echo '```'
+
+echo "## 9bis. Services systemd NON standard (ni Ubuntu, ni Décroché connus)"
+echo '```'
+KNOWN_REGEX='^(systemd-|dbus|ssh|sshd|cron|nginx|docker|containerd|snapd|fail2ban|ufw|apparmor|polkit|udisks2|rsyslog|networkd|resolved|timesyncd|multipathd|lvm2|fwupd|logrotate|man-db|motd-news|sysstat|update-notifier|apt-daily|dpkg-db-backup|e2scrub|fstrim|grub|blk-availability|unattended-upgrades|ModemManager|qemu-guest-agent|serial-getty|getty@|user@|plymouth|kmod-static|modprobe@|systemd-tmpfiles|propkit-api)'
+UNKNOWN_SERVICES=$(systemctl list-units --type=service --all --no-legend --no-pager 2>/dev/null \
+  | awk '{print $1}' | sed 's/\.service$//' \
+  | grep -vE "$KNOWN_REGEX" | sort)
+for svc in $UNKNOWN_SERVICES; do
+  echo "--- $svc ---"
+  systemctl show "$svc" -p FragmentPath -p ExecStart -p ActiveState 2>/dev/null
+done
 echo '```'
 
 echo "## 10. fail2ban"
@@ -93,23 +105,28 @@ echo '```'
 
 } > "$REPORT"
 
-# --- Comparaison à la baseline (comptes + clés SSH = les 2 signaux les + critiques) ---
+# --- Comparaison à la baseline (comptes + clés SSH + services non standard) ---
 CURRENT_SIGNATURE=$(
   awk -F: '($3>=1000 && $7!~"nologin" && $7!~"false") || $1=="root" {print $1}' /etc/passwd | sort
   for f in /root/.ssh/authorized_keys /home/*/.ssh/authorized_keys; do
     [ -f "$f" ] && awk '{print $1" "$2}' "$f"
   done | sort
+  echo "$UNKNOWN_SERVICES" | sed 's/^/SVC:/'
 )
 
 echo
 echo "=== Résumé (voir $REPORT pour le détail) ==="
+if [ -n "$UNKNOWN_SERVICES" ]; then
+  flag "service(s) systemd non reconnus actifs sur ce serveur — à identifier AVANT toute autre action :"
+  echo "$UNKNOWN_SERVICES" | sed 's/^/    - /'
+fi
 if [ -f "$BASELINE" ]; then
   DIFF=$(diff <(echo "$CURRENT_SIGNATURE") "$BASELINE" || true)
   if [ -n "$DIFF" ]; then
-    flag "changement détecté vs baseline (nouveau compte ou nouvelle clé SSH) :"
+    flag "changement détecté vs baseline (nouveau compte, nouvelle clé SSH, ou service) :"
     echo "$DIFF"
   else
-    ok "comptes + clés SSH identiques à la baseline"
+    ok "comptes + clés SSH + services identiques à la baseline"
   fi
 else
   echo "🆕 Première exécution — cette liste devient la baseline de référence."
