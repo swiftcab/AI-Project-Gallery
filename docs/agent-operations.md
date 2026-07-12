@@ -12,11 +12,21 @@ fichier à faire lire à Hermes en premier (avec `CLAUDE.md` et `docs/PRD.md`).
 | **CTO / cerveau** | Claude Code (cette session + sessions futures) | Cloud (sandboxé) | Architecture, code, revues, docs, stratégie produit/business, rapport quotidien |
 | **COO / opérateur** | Hermes | Sur le VPS (accès local réel) | Exécution : déploiements, prospection, monitoring, gestion clientèle de premier niveau |
 
-Le lien entre les deux agents est **le repo Git** : le CTO pousse du code/des
-docs → le pipeline CD déploie → Hermes opère le résultat sur le VPS et remonte
-les signaux (logs, incidents, métriques) au fondateur, qui peut les rapporter
-au CTO ici pour analyse. Ni magie ni couplage direct : un artefact versionné,
-auditable, réversible. C'est volontaire.
+Le lien entre les deux agents est **le repo Git**, dans les deux sens :
+- CTO → VPS : le CTO pousse du code/des docs → le pipeline CD déploie →
+  Hermes opère le résultat sur le VPS (`docs/automation.md`).
+- VPS → CTO : Hermes écrit ses rapports (quotidien, incidents, audit
+  sécurité) dans `ops/reports/` et les commit+push dans le repo. La Routine
+  quotidienne du CTO (programmée 06:00 UTC) lit le dernier rapport présent
+  via les outils GitHub et l'intègre à sa propre synthèse.
+
+Aucune connexion directe entre les deux agents — ni MCP, ni API, ni accès
+réseau du CTO vers le VPS (impossible techniquement, la session cloud du CTO
+n'a pas d'accès sortant arbitraire, vérifié). Le contrôle est **asynchrone
+et versionné** : chaque rapport d'Hermes est un commit, donc historisé,
+diffable, et jamais perdu. C'est un choix, pas une limitation regrettable —
+un COO qui rend des comptes par écrit, tracés, plutôt qu'un accès permanent
+non audité.
 
 ## Charte COO — à coller telle quelle dans la configuration d'Hermes
 
@@ -81,14 +91,16 @@ avec son outil cron natif, livraison Telegram).
 ## Rapport quotidien (mis en place côté CTO)
 
 Une Routine planifiée tourne dans la session Claude Code du fondateur,
-chaque jour ouvré à ~8h Paris. Elle produit un rapport court :
+chaque jour à 06:00 UTC. Elle produit un rapport court :
 1. **Réalisations** — commits/déploiements des dernières 24h (lu depuis GitHub).
-2. **Prochaines actions classées** — impact CA d'abord (pilotes, outreach,
+2. **Côté VPS** — lit le dernier fichier de `ops/reports/` poussé par Hermes
+   (s'il existe ; sinon le dit explicitement, ne fabrique rien).
+3. **Prochaines actions classées** — impact CA d'abord (pilotes, outreach,
    conversion), amélioration du service ensuite (dette, qualité, prompts).
-3. **Décisions en attente du fondateur** — avec recommandation.
+4. **Décisions en attente du fondateur** — avec recommandation.
 Les métriques d'exploitation temps réel (leads/24h, urgences) viennent
-d'Hermes via `/api/ops/status` — le CTO cloud n'a pas accès réseau au VPS
-(sandbox), c'est le point quotidien Telegram d'Hermes qui les porte.
+d'Hermes, par deux canaux complémentaires : Telegram (immédiat, pour vous)
+et `ops/reports/` (versionné, pour la revue du CTO le lendemain).
 
 ## Brancher Telegram sur Hermes (10 min, une seule fois)
 
@@ -112,7 +124,7 @@ l'agent. Ordre de branchement conseillé :
 
 | Priorité | Serveur MCP | Usage | Mode |
 |---|---|---|---|
-| 1 | GitHub | lire les issues/PR, déclencher `workflow_dispatch` du deploy | lecture + 1 action |
+| 1 | GitHub | lire les issues/PR, déclencher `workflow_dispatch` du deploy, **committer `ops/reports/`** (pont vers le CTO) | lecture + écriture scopée à `ops/reports/` |
 | 2 | Filesystem (local VPS, scope /opt/decroche) | logs, CSV outreach, backups | lecture/écriture scopée |
 | 3 | Telegram (natif Hermes) | canal fondateur | bidirectionnel |
 | 4 | Postgres (lecture seule, utilisateur SQL dédié `hermes_ro`) | requêtes ad hoc sur les leads | lecture seule |
@@ -127,9 +139,19 @@ GRANT SELECT ON ALL TABLES IN SCHEMA public TO hermes_ro;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO hermes_ro;
 ```
 
-Anti-patterns à refuser : donner à Hermes le token GitHub avec droits d'écriture
-sur le code (le code passe par le CTO + revue), un accès SQL en écriture
-(tout écrit passe par l'API `/api/ops/*` validée), ou un accès aux secrets
+**Token GitHub d'Hermes** : créer un *fine-grained personal access token*
+(GitHub → Settings → Developer settings → Fine-grained tokens), scope
+**Contents: Read and write**, limité au seul repo `swiftcab/AI-Project-Gallery`
+— ce token permet le commit dans `ops/reports/` (ligne 1 du tableau
+ci-dessus) mais n'a aucune permission spéciale sur `src/`, `prisma/` etc. au
+niveau GitHub : la protection réelle est la discipline (Hermes ne modifie
+JAMAIS de code, HERMES.md le lui interdit explicitement), pas un scope
+technique par dossier — GitHub ne permet pas de restreindre un token à un
+sous-répertoire. Le coller dans la configuration d'Hermes (jamais au CTO).
+
+Anti-patterns à refuser : donner à Hermes un token GitHub avec droits sur
+d'autres repos, un accès SQL en écriture (tout écrit passe par l'API
+`/api/ops/*` validée), ou un accès aux secrets
 `.env` en dehors du VPS.
 
 ## Évaluer l'efficacité de l'architecture agentique (questions à me poser ici)

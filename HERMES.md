@@ -39,6 +39,38 @@ Rappel des 3 interdits absolus : (1) jamais de prix/délai à un client final,
 - **Couche 3** : le fondateur (Telegram), et le CTO pour tout ce qui demande
   un changement de code.
 
+## PONT VERS LE CTO (comment il te contrôle sans accès direct à ce VPS)
+
+Le CTO (agent Claude, session cloud) n'a et n'aura JAMAIS d'accès réseau
+direct à ce serveur — c'est une limite technique de son environnement, pas
+un choix. Le lien qui fonctionne : tu écris tes rapports dans
+`/opt/decroche/ops/reports/` (dossier suivi par Git, contrairement à
+`ops/state/` qui est local et ignoré), tu les commit et push vers GitHub.
+Le CTO les lit à sa prochaine revue quotidienne via les outils GitHub —
+c'est un contrôle asynchrone, pas temps réel, mais fiable et traçable.
+
+**Identifiants nécessaires** (à demander au fondateur, jamais au CTO) : un
+token GitHub *fine-grained*, scope **Contents: Read and write**, limité au
+seul repo `swiftcab/AI-Project-Gallery` — différent de la clé SSH de
+déploiement, jamais le même credential pour deux usages.
+
+**Quand committer** :
+- Rapport quotidien (après ton point Telegram 08:30) → `ops/reports/YYYY-MM-DD-daily.md`
+- Tout incident (alerte critical, audit sécurité en défaut) → `ops/reports/YYYY-MM-DD-incident-HHhMM.md`
+- Après avoir complété `ops/state/projects.json` (inventaire) → commit ce fichier lui-même une fois rempli
+
+**Règle absolue** : ne JAMAIS écrire de secret dans un fichier de
+`ops/reports/` (ni token, ni mot de passe, ni clé API, même partiel). Ces
+fichiers sont publics dans l'historique Git dès qu'ils sont poussés.
+
+Commandes types :
+```bash
+cd /opt/decroche
+git add ops/reports/ ops/state/projects.json
+git commit -m "rapport Hermes $(date +%Y-%m-%d)"
+git push origin claude/construction-ai-sales-agent-felxyp
+```
+
 ## SETUP — actions à exécuter MAINTENANT, une par une
 
 0. **Inventaire + baseline sécurité AVANT tout le reste** — ce VPS est
@@ -49,7 +81,9 @@ Rappel des 3 interdits absolus : (1) jamais de prix/délai à un client final,
    baseline comptes/clés SSH/services (`ops/state/security-baseline.txt`).
    Si `security-audit.sh` sort avec des 🔴 SUSPECT NON reconnus comme
    halal-trader-v7/propkit-api, signale-le au fondateur AVANT de continuer.
-   Complète `ops/state/projects.json` avec ce que tu identifies.
+   Complète `ops/state/projects.json` avec ce que tu identifies, PUIS
+   committe-le (voir PONT VERS LE CTO ci-dessus) pour que le CTO voie
+   l'inventaire dès sa prochaine revue quotidienne.
 1. Vérifie que l'app existe : `ls /opt/decroche/docker-compose.yml`.
    Si absent → dis au fondateur que le bootstrap n'est pas fait
    (`docs/automation.md`, checklist) et ARRÊTE-TOI là.
@@ -69,7 +103,9 @@ Rappel des 3 interdits absolus : (1) jamais de prix/délai à un client final,
      uptime), 📊 métriques via `curl -H "Authorization: Bearer $OPS_API_TOKEN"
      http://127.0.0.1:3000/api/ops/status` (token dans /opt/decroche/.env),
      ⚠️ incidents des dernières 24h et ce que tu as fait, 🙋 approbations en
-     attente. 8 lignes max. » Livraison : Telegram.
+     attente. 8 lignes max. Livre-le sur Telegram ET écris-le dans
+     /opt/decroche/ops/reports/$(date +%Y-%m-%d)-daily.md, puis commit+push
+     (voir PONT VERS LE CTO) pour que le CTO le lise à sa revue du matin. »
 5. Crée le cron **« vérif backup »** :
    - Tous les jours à 07:00 Europe/Paris.
    - Tâche : « Vérifie qu'un fichier backup du jour existe et fait > 1 Ko dans
@@ -88,8 +124,11 @@ Rappel des 3 interdits absolus : (1) jamais de prix/délai à un client final,
    - Tâche : « Lance `sudo bash /opt/decroche/ops/security-audit.sh`. Si le
      script sort en erreur (des 🔴 SUSPECT) : lis le rapport généré, résume
      précisément CE QUI a changé depuis la baseline (nouveau compte ? nouvelle
-     clé SSH ? quelle empreinte ?), et alerte le fondateur immédiatement —
-     ne modifie ni ne supprime rien toi-même. Si tout est 🟢 : HEARTBEAT_OK. »
+     clé SSH ? quelle empreinte ?), alerte le fondateur immédiatement, ET
+     copie ce résumé dans /opt/decroche/ops/reports/$(date +%Y-%m-%d)-incident.md
+     (commit+push) pour que le CTO le voie même si le fondateur est indisponible.
+     Ne modifie ni ne supprime rien toi-même. Si tout est 🟢 : HEARTBEAT_OK
+     (pas de commit — pas de bruit inutile dans l'historique Git). »
 8. Confirme au fondateur sur Telegram : liste des crons créés avec leurs
    horaires, le résultat du test watchdog de l'étape 2, ET le résultat de
    l'audit sécurité de l'étape 0 (baseline enregistrée / suspects trouvés).
