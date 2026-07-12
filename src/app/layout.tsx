@@ -45,7 +45,14 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>
+        {/* Filet de sécurité JS désactivé : sans script, .reveal ne recevrait
+            jamais .visible (ajoutée par Reveal.tsx) — on neutralise l'animation. */}
+        <noscript>
+          <style>{`.reveal { opacity: 1 !important; transform: none !important; }`}</style>
+        </noscript>
+        {children}
+      </body>
     </html>
   );
 }
