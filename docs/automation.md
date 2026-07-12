@@ -144,20 +144,41 @@ rien dans le code ne la code en dur : `.github/workflows/deploy.yml` lit
 `ops/nginx.conf` et `.env.example` pointent déjà vers `qualifyourlead.com` —
 rien d'autre à changer dans le code une fois le DNS branché.
 
+## ⚠️ VPS partagé avec d'autres projets
+
+Ce VPS héberge déjà `halal-trader-v7` (bot de trading, 6 services systemd +
+auth admin) et `propkit-api` (FastAPI). Ce n'est PAS un serveur vierge dédié
+à Décroché. Conséquences concrètes :
+- `ops/inventory.sh` (lecture seule) doit tourner AVANT `bootstrap.sh` pour
+  cataloguer ports/nginx/conteneurs déjà utilisés — complétez ensuite
+  `ops/state/projects.json` avec ce que sont ces projets et leurs ports.
+- `ops/bootstrap.sh` a un mode **pré-vol par défaut** (n'touche jamais au
+  pare-feu ni à nginx sans `CONFIRM=yes` explicite) et n'écrase jamais un
+  site nginx existant ni un conteneur Docker existant.
+- Si halal-trader-v7/propkit-api exposent des ports réseau externes,
+  passez-les dans `ALLOW_EXTRA_PORTS` au moment du `CONFIRM=yes`, sinon
+  activer le pare-feu les couperait.
+- Le durcissement SSH (`PermitRootLogin no`) ne s'applique qu'aux connexions
+  réseau (port 22) — jamais à la Console/Terminal du panel Hostinger.
+
 ## Checklist de mise en route (dans l'ordre)
 
 1. [x] DNS `qualifyourlead.com` → `187.77.171.238` (déjà fait, vérifié 2026-07-11)
-2. [ ] Lancer `ops/bootstrap.sh` dans le Terminal Hostinger (root) — il génère
-       la clé de déploiement lui-même et l'affiche une seule fois à la fin
-3. [ ] Copier la clé privée affichée → secret GitHub `DEPLOY_SSH_KEY`
-4. [ ] Compléter `/opt/decroche/.env` sur le VPS (secrets réels, y compris
+2. [ ] `sudo bash ops/inventory.sh` puis `sudo bash ops/security-audit.sh`
+       (lecture seule) — comprendre ce qui tourne déjà avant de continuer
+3. [ ] Lancer `ops/bootstrap.sh` en mode pré-vol (sans `CONFIRM=yes`) pour
+       voir ce qu'il ferait, puis avec `CONFIRM=yes ALLOW_EXTRA_PORTS=...`
+       une fois les ports des autres projets identifiés — il génère la clé
+       de déploiement lui-même et l'affiche une seule fois à la fin
+5. [ ] Copier la clé privée affichée → secret GitHub `DEPLOY_SSH_KEY`
+6. [ ] Compléter `/opt/decroche/.env` sur le VPS (secrets réels, y compris
        `OPS_API_TOKEN`, `DEEPSEEK_API_KEY`, `APIFY_API_TOKEN`)
-5. [ ] `certbot --nginx -d qualifyourlead.com -d www.qualifyourlead.com`
-6. [ ] Premier démarrage manuel (commandes affichées par `ops/bootstrap.sh`)
-7. [ ] Ajouter `DEPLOY_HOST=187.77.171.238` et `DEPLOY_USER=deploy` dans GitHub
-8. [ ] Push sur la branche → vérifier que le workflow `deploy.yml` passe au vert
-9. [ ] Configurer les webhooks Twilio/smsmode vers `https://qualifyourlead.com/api/hooks/*`
-10. [ ] Onboarder le premier compte via `/ops` ou `/api/ops/accounts`
+7. [ ] `certbot --nginx -d qualifyourlead.com -d www.qualifyourlead.com`
+8. [ ] Premier démarrage manuel (commandes affichées par `ops/bootstrap.sh`)
+9. [ ] Ajouter `DEPLOY_HOST=187.77.171.238` et `DEPLOY_USER=deploy` dans GitHub
+10. [ ] Push sur la branche → vérifier que le workflow `deploy.yml` passe au vert
+11. [ ] Configurer les webhooks Twilio/smsmode vers `https://qualifyourlead.com/api/hooks/*`
+12. [ ] Onboarder le premier compte via `/ops` ou `/api/ops/accounts`
 
 ## Handoff à un agent (Cowork/Hermes)
 

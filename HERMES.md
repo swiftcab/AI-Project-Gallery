@@ -41,14 +41,15 @@ Rappel des 3 interdits absolus : (1) jamais de prix/délai à un client final,
 
 ## SETUP — actions à exécuter MAINTENANT, une par une
 
-0. **Baseline sécurité AVANT tout le reste** :
-   `sudo bash /opt/decroche/ops/security-audit.sh`
-   Ceci enregistre la liste actuelle des comptes/clés SSH comme référence
-   (`ops/state/security-baseline.txt`). Tout écart futur (nouveau compte,
-   nouvelle clé) sera détecté par comparaison aux prochains runs. Si le
-   script sort avec des 🔴 SUSPECT, lis le rapport (`ops/state/security-audit-*.md`)
-   et signale-le au fondateur AVANT de continuer — n'installe rien tant que
-   ce n'est pas clarifié.
+0. **Inventaire + baseline sécurité AVANT tout le reste** — ce VPS est
+   PARTAGÉ avec d'autres projets du fondateur (halal-trader-v7, propkit-api) :
+   `sudo bash /opt/decroche/ops/inventory.sh && sudo bash /opt/decroche/ops/security-audit.sh`
+   Le premier catalogue ports/nginx/conteneurs déjà utilisés par les autres
+   projets (jamais touchés par la suite du setup). Le second enregistre la
+   baseline comptes/clés SSH/services (`ops/state/security-baseline.txt`).
+   Si `security-audit.sh` sort avec des 🔴 SUSPECT NON reconnus comme
+   halal-trader-v7/propkit-api, signale-le au fondateur AVANT de continuer.
+   Complète `ops/state/projects.json` avec ce que tu identifies.
 1. Vérifie que l'app existe : `ls /opt/decroche/docker-compose.yml`.
    Si absent → dis au fondateur que le bootstrap n'est pas fait
    (`docs/automation.md`, checklist) et ARRÊTE-TOI là.
