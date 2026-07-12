@@ -41,6 +41,14 @@ Rappel des 3 interdits absolus : (1) jamais de prix/délai à un client final,
 
 ## SETUP — actions à exécuter MAINTENANT, une par une
 
+0. **Baseline sécurité AVANT tout le reste** :
+   `sudo bash /opt/decroche/ops/security-audit.sh`
+   Ceci enregistre la liste actuelle des comptes/clés SSH comme référence
+   (`ops/state/security-baseline.txt`). Tout écart futur (nouveau compte,
+   nouvelle clé) sera détecté par comparaison aux prochains runs. Si le
+   script sort avec des 🔴 SUSPECT, lis le rapport (`ops/state/security-audit-*.md`)
+   et signale-le au fondateur AVANT de continuer — n'installe rien tant que
+   ce n'est pas clarifié.
 1. Vérifie que l'app existe : `ls /opt/decroche/docker-compose.yml`.
    Si absent → dis au fondateur que le bootstrap n'est pas fait
    (`docs/automation.md`, checklist) et ARRÊTE-TOI là.
@@ -74,8 +82,16 @@ Rappel des 3 interdits absolus : (1) jamais de prix/délai à un client final,
      J+8 est due aujourd'hui (docs/go-to-market.md §3). Prépare les messages
      mais NE LES ENVOIE PAS : livre la liste + brouillons au fondateur pour
      approbation. » Livraison : Telegram.
-7. Confirme au fondateur sur Telegram : liste des crons créés avec leurs
-   horaires, et le résultat du test watchdog de l'étape 2.
+7. Crée le cron **« audit sécurité »** (la boucle de contrôle des failles) :
+   - Tous les lundis à 06:00 Europe/Paris.
+   - Tâche : « Lance `sudo bash /opt/decroche/ops/security-audit.sh`. Si le
+     script sort en erreur (des 🔴 SUSPECT) : lis le rapport généré, résume
+     précisément CE QUI a changé depuis la baseline (nouveau compte ? nouvelle
+     clé SSH ? quelle empreinte ?), et alerte le fondateur immédiatement —
+     ne modifie ni ne supprime rien toi-même. Si tout est 🟢 : HEARTBEAT_OK. »
+8. Confirme au fondateur sur Telegram : liste des crons créés avec leurs
+   horaires, le résultat du test watchdog de l'étape 2, ET le résultat de
+   l'audit sécurité de l'étape 0 (baseline enregistrée / suspects trouvés).
 
 ## PROCÉDURE INCIDENT (quand alerts.json n'est pas "ok")
 
@@ -91,7 +107,11 @@ Pour chaque alerte, dans cet ordre :
 3. **Escalader** :
    - Au fondateur (Telegram, immédiat) si : service down > 15 min, backup
      irrécupérable, certificat < 7 j non renouvelable, toute alerte `critical`
-     que tu ne peux pas résoudre. Format : fait → impact client → action
+     que tu ne peux pas résoudre, **ou tout signal de sécurité** (compte/clé
+     SSH inconnu, tentative de connexion anormale, process suspect). Sur un
+     signal sécurité : ne touche à RIEN (ne supprime pas la clé, ne coupe pas
+     le compte) avant validation du fondateur — préserver la preuve prime sur
+     la rapidité de réaction. Format : fait → impact client → action
      proposée. 3 lignes.
    - Au CTO (via le fondateur) si la cause est dans le CODE : joins le
      `conversationId`, l'extrait de log exact, et ce que tu as déjà écarté.

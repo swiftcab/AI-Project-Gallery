@@ -25,6 +25,7 @@ de conformité ; s'aligner maintenant rend la certification future banale.
 | Backups quotidiens + rotation 14 j + procédure de restauration testable | `ops/backup.sh` | ISO 27001 A.8.13 |
 | TLS partout (Certbot), redirection 80→443 | `ops/nginx.conf` | RGPD art. 32 |
 | CI bloquante (tests déterministes) + traçabilité replay LLM (`llmRaw`, `promptVersion`) | CI, schéma Prisma | Auditabilité |
+| Audit sécurité en boucle (comptes/clés SSH/cron/ports vs baseline) hebdomadaire via Hermes | `ops/security-audit.sh`, `HERMES.md` étape 0+7 | ISO 27001 A.5.25/A.8.16 (détection) |
 
 ## 2. À faire AVANT le premier client payant (bloquant)
 
@@ -73,7 +74,14 @@ Les 6 documents qui donnent 80 % de la valeur, à tenir dans `docs/` :
 | Fuite de secret (clé API, token) | revue, alerte fournisseur | Révoquer/régénérer la clé, chercher l'usage frauduleux dans les consoles | Noter dans debug-log ; si données clients touchées → §violation |
 | Violation de données personnelles | logs, alerte, signalement | Geler la source (couper le service si besoin), évaluer le périmètre | **CNIL sous 72 h** si risque pour les personnes (art. 33) + information des artisans concernés |
 | Service down | Uptime Kuma, Hermes | Redémarrage (auto), diagnostic runbook §11 | Si > 1 h : message aux clients pilotes |
-| Compromission VPS | fail2ban, comportement anormal | Snapshot Hostinger, rotation SSH/secrets, réinstallation via bootstrap.sh + restore backup | Post-mortem dans debug-log |
+| Compromission VPS | `ops/security-audit.sh` (hebdo, ou à la demande), fail2ban, comportement anormal | NE PAS toucher aux preuves (clé/compte suspect) — snapshot Hostinger immédiat, rotation SSH/secrets, réinstallation via bootstrap.sh + restore backup depuis un point antérieur à la compromission | Post-mortem dans debug-log |
+
+### Vérifier l'état de sécurité à la demande
+`sudo bash /opt/decroche/ops/security-audit.sh` — lecture seule, compare
+comptes/clés SSH à la dernière baseline connue, journalise ports ouverts,
+crontabs, tentatives de connexion échouées, config sshd. À lancer après tout
+événement inhabituel (prompt de login inattendu, accès VPS qui se comporte
+différemment) et systématiquement avant un `git checkout`/reprovisioning.
 
 Contact CNIL : notification en ligne sur cnil.fr. Garder ce réflexe écrit ici
 suffit à cette échelle — pas besoin d'un outil de GRC.
