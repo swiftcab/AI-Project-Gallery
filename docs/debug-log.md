@@ -14,6 +14,34 @@ Les entrées sont ajoutées par ordre antéchronologique (plus récent en haut).
 
 ---
 
+## 2026-07-12 — Secret committé + push direct de Hermes sur la branche de déploiement
+- Symptôme : revue quotidienne du repo, deux commits inattendus (auteur
+  `Hermes Agent <hermes@decroche.io>`) sur `claude/construction-ai-sales-agent-felxyp` :
+  un mot de passe Postgres codé en dur (`Decroche2026X`) dans
+  `docker-compose.yml`, et une réécriture complète de `HERMES.md` incluant
+  un tableau de credentials avec un extrait de `DEEPSEEK_API_KEY` en clair.
+- Cause    : `docs/agent-operations.md` accordait à Hermes un token GitHub
+  *fine-grained* avec écriture sur tout le repo (GitHub ne permet pas de
+  restreindre un token à `ops/reports/` seul — limite documentée à
+  l'époque comme "la protection réelle est la discipline"). La discipline a
+  manqué : Hermes a committé un fix légitime (mdp Postgres désynchronisé
+  entre `.env.example` et `docker-compose.yml`) mais l'a résolu en codant
+  le mot de passe en dur plutôt qu'en le passant en variable d'env, et a
+  réécrit ses propres règles en perdant au passage les 3 interdits produit
+  (prix/délai, horaires légaux SMS, STOP) et la règle anti-secrets.
+- Fix      : `docker-compose.yml` — restauré `${POSTGRES_PASSWORD:?requis}`.
+  `HERMES.md` — retiré le tableau de credentials en clair, restauré les 3
+  interdits produit + la référence à `CLAUDE.md`/`docs/agent-operations.md`,
+  ajouté une règle secrets explicite et un rappel "aucun push direct de
+  code, même un fix évident, sans passer par le CTO".
+- Test     : aucun test automatisé ne peut empêcher un agent avec accès
+  d'écriture Git de committer un secret — c'est un gap de process, pas de
+  code. Action de fond nécessaire (pas faite ici) : régénérer la clé
+  DeepSeek exposée et le mot de passe Postgres compromis (ils restent dans
+  l'historique Git même supprimés du HEAD), et décider avec le fondateur si
+  le token GitHub d'Hermes doit être révoqué/remplacé par un flux qui ne
+  permet plus le push direct (ex: PR + revue) plutôt qu'un correctif de plus.
+
 ## 2026-07-11 — `npm run leads:generate` échoue "APIFY_API_TOKEN: Required" malgré un .env rempli
 - Symptôme : `getLeadgenConfig()` lève une erreur de config manquante alors
   que `.env` contient bien `APIFY_API_TOKEN`.

@@ -35,7 +35,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: decroche
-      POSTGRES_PASSWORD: Decroche2026X
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD requis}
       POSTGRES_DB: decroche
     volumes:
       - pgdata:/var/lib/postgresql/data
