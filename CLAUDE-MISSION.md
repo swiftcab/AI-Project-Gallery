@@ -1,109 +1,133 @@
-# Mission Claude Code — Décroché : Architecture Hermes ↔ Claude Code
+# CLAUDE-MISSION.md — Mission complète Décroché
 
-## 1. Architecture de collaboration
-
-```
-[Fondateur (Telegram)]
-    ↕
-[Hermes Agent — COO technique] ←→ [Claude Code — CTO]
-    ↕                                  ↕
-[VPS Production]                  [Repo GitHub]
-- Monitoring 24/7                  - Code produit
-- Crons (sentinelle, backup)        - Landing page
-- Santé infra                      - Composants 21st.dev
-- Rapports quotidiens               - Stripe paiement
-```
-
-**Règles de collaboration :**
-- **Claude Code** = responsable du CODE : features, landing page, composants, déploiement via CD
-- **Hermes** = responsable de l'OPS : VPS, monitoring, crons, santé, rapports
-- **Communication** : via GitHub (Claude Code push → Hermes voit les changements dans le repo)
-- **Ne JAMAIS** modifier le travail de l'autre sans coordination explicite
-- **Toujours** pull/rebase avant push pour éviter les conflits
-
-## 2. Mission landing page
-
-### Design
-- Inspiré de 21st.dev (composants React, animations sophistiquées)
-- Thème sombre (dark mode) avec accents cyan/bleu (cohérent avec la page existante)
-- Animations : fade-in au scroll, micro-interactions, gradients dynamiques
-- Responsive mobile-first (les artisans BTP sont sur téléphone)
-
-### Sections obligatoires
-1. **Hero** : proposition de valeur choc, CTA "Essai gratuit", preuve sociale (statistiques)
-2. **Comment ça marche** : 3 étapes visuelles (appel manqué → SMS IA → fiche lead)
-3. **Bénéfices** : "Ne perdez plus jamais un client parce que vous étiez sur un chantier"
-4. **Pricing** : 3 plans — Gratuit (14j) / Pro 79€ / Artisan+ 149€
-5. **Témoignages** : placeholder pour future preuve sociale
-6. **FAQ** : questions fréquentes (RGPD, fonctionnement, résiliation)
-7. **CTA final** : "Créez votre compte gratuitement — 14 jours sans CB"
-
-### Technique
-- Utiliser Tailwind CSS (déjà configuré dans Next.js)
-- Utiliser Framer Motion ou CSS animations pour les transitions
-- Composants React Server Components (RSC) pour la perf
-- Stripe Checkout ou Stripe Elements pour le paiement
-- i18n : français uniquement
-
-## 3. Funnel de vente (Alex Hormozi / Russell Brunson)
-
-1. **Lead magnet** : Guide gratuit "5 astuces pour ne plus perdre de clients quand on est sur un chantier" (PDF à télécharger)
-2. **Email sequence** : 7 emails de nurturing (automatisé via SendGrid/Brevo)
-3. **Call to action** : Essai gratuit 14 jours, pas de CB, activation en 5 min
-4. **Upsell** : De "Pro" à "Artisan+" après 30 jours
-5. **Downsell** : Si abandon du paiement, offre à 49€/mois limitée
-
-## 4. Structure des pages
+## Architecture Hermes ↔ Claude Code
 
 ```
-/                    → Landing page (hero + features + pricing + FAQ)
-/onboarding          → Inscription (email + métier + téléphone)
-/dashboard/leads     → Liste des leads qualifiés
-/dashboard/settings  → Paramètres (périmètre géo, horaires)
-/api/checkout        → Stripe Checkout session
-/api/webhook/stripe  → Stripe webhook
-/api/ops/*           → Endpoints pour Hermes
+Fondateur → Hermes (COO/DevOps) ↔ Claude Code (CTO/Développement)
+                 ↕                           ↕
+           VPS Production              GitHub Repository
+         - Monitoring 24/7            - Code source
+         - 7 crons actifs             - Features produit
+         - Santé infra                - Landing page
+         - Rapports Telegram          - Stripe paiement
 ```
 
-## 5. Tokenisation et optimisation DeepSeek
+**Règles de synchronisation :**
+1. Claude Code push sur `claude/construction-ai-sales-agent-felxyp`
+2. Hermes détecte automatiquement les nouveaux commits via cron
+3. Hermes rebuild/déploie si nécessaire
+4. Toujours `git pull --rebase` avant push (évite les conflits avec Hermes)
 
-Le système utilise déjà `deepseek-v4-flash` (le plus rentable). Pour scaler :
+## Mission 1 — Landing page (PRIORITAIRE)
 
-| Tâche | Modèle | Max tokens | Coût estimé |
-|---|---|---|---|
-| Qualification SMS | deepseek-v4-flash | 700 | 0,003€/tour |
-| Résumé patron | deepseek-v4-flash | 300 | 0,001€/appel |
-| Landing page (LLM) | deepseek-v4-flash | 2000 | N/A |
-| Email marketing | deepseek-v4-flash | 1000 | N/A |
-| Analyse leads | deepseek-v4-flash | 500 | 0,001€/lead |
+### Design (inspiré 21st.dev)
+- Thème sombre (dark mode) avec accents cyan/bleu (#06b6d4 → #3b82f6)
+- Animations : fade-in au scroll, micro-interactions hover, gradients dynamiques
+- Typographie : gras, impactante (taille héro 5xl-7xl)
+- Responsive mobile-first (artisans sur téléphone)
+- Performant (RSC, images optimisées)
 
-La config dans `src/lib/llm/` supporte le swap de modèle sans code.
-
-## 6. Configuration Stripe
-
-```env
-STRIPE_SECRET_KEY=sk_live_*** (à ajouter dans .env sur le VPS)
+### Structure
+```
+/  → Landing complète (héro, features, pricing, FAQ, CTA)
+/onboarding → Inscription (email, métier, téléphone, numéro)
+/dashboard/leads → Liste leads qualifiés
+/dashboard/settings → Config (géographie, horaires)
+/api/checkout → Stripe Checkout session
+/api/webhook/stripe → Stripe webhook notifications
 ```
 
-➡️ **Ajouter la clé publiable** dans .env sur le VPS
+### Sections landing
+1. **Hero** : "Ne perdez plus jamais un client parce que vous étiez sur un chantier" + CTA "Essai gratuit 14 jours"
+2. **Statistiques** : 3 sec réponse, 21x plus de leads, 79€/mois
+3. **Comment ça marche** : 3 étapes visuelles
+4. **Pricing** : Gratuit (14j) / Pro 79€ / Artisan+ 149€ (avec mise en avant Pro)
+5. **Témoignages** : Placeholder
+6. **FAQ** : RGPD, fonctionnement, résiliation
+7. **CTA final**
 
-## 7. Objectifs
+### Stripe paiement (config)
+- Stripe Checkout pour les 3 plans
+- Webhook `/api/webhook/stripe` pour confirmer les paiements
+- Pricing dans `src/lib/pricing.ts`
 
-- **J1** : Landing page déployée + Stripe connecté
-- **J7** : Premier client payant
-- **J30** : 10 clients → 790€ MRR
-- **J60** : 130 clients → 10 000€ MRR
+### Stripe Keys
+Les mettre dans `.env.local` :
+```
+STRIPE_SECRET_KEY=*** (à ajouter dans .env)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=*** (récupérer dans le dashboard Stripe)
+```
 
-## 8. Comment Hermes et Claude Code synchronisent
+## Mission 2 — Tests ISTQB + Watchdog
 
-1. Claude Code push sur GitHub → Hermes voit le commit via cron vérif-repo
-2. Hermes rapporte "Nouveau commit : feat: landing page" au fondateur
-3. Si modification du code nécessite rebuild Docker : Claude Code l'indique dans le commit message
-4. Pour tout déploiement urgent : le fondateur contacte Hermes qui contacte Claude Code via le repo
+### Tests existants dans le repo
+- `tests/unit/guardrails.test.ts` — 5 blocs de test
+- `tests/unit/stateMachine.test.ts` — transitions
+- `tests/unit/qualifier.test.ts` — agent turns
+- `tests/unit/sendWindow.test.ts` — fenêtres horaires
+- `tests/unit/config.test.ts` — validation env
+- `tests/unit/prompts.test.ts` — prompts
+- `tests/integration/flow.test.ts` — flux complet
+- `tests/integration/ops.test.ts` — API ops
 
-## 9. Astuces marketing (Top 1% marketers)
+### Nouvelles règles de qualité (ISTQB)
+- Chaque nouveau module DOIT avoir des tests unitaires
+- Les tests CI doivent passer avant merge
+- Niveau 1 : Tests unitaires (déterministes)
+- Niveau 2 : Tests intégration (avec base réelle)
+- Niveau 3 : Tests système (watchdog E2E)
 
-- **Alex Hormozi** : L'offre doit être 10x meilleure ou 10x moins chère. Ici → 79€ vs 200€+ pour un télésecrétariat
-- **Russell Brunson** : "Le prospect ne veut pas un appel qualifié, il veut ne PLUS JAMAIS perdre de client"
-- **Copywriting** : Parler au "vous" des artisans, pas de jargon SaaS
-- **Positionnement** : "Le télésecrétariat qui ne dort jamais" plutôt que "solution IA"
+## Mission 3 — Marketing outbound
+
+### Sources de prospects (Apify + Google Maps)
+- Apify Actor `compass~crawler-google-places` pour scraper
+- Cibles : plombiers, électriciens, chauffagistes, maçons par département
+- Chercher les emails sur les sites via Google Maps scraper
+- Enrichir avec le numéro de téléphone pour qualification
+
+### Email outreach
+- Séquences automatisées (7 jours) :
+  1. Jour 1 : "Vous avez raté des appels cette semaine ?"
+  2. Jour 3 : "Votre répondeur ne qualifie pas vos clients"
+  3. Jour 5 : "Décroché vous répond déjà [prénom]"
+  4. Jour 7 : "14 jours gratuits - testez sans CB"
+  5. Jour 10 : Suivi + offre 79€/mois
+  6. Jour 14 : "Dernière chance essai gratuit"
+  7. Jour 21 : Offre spéciale 49€/mois limitée
+
+## Mission 4 — Chatbot Telegram IA
+
+### Architecture
+- Bot Telegram (token : 8685856014:AAHwF4JJoQWBmmNGwEgJslzsjDMu9RkhmxY)
+- Backend : DeepSeek v4-flash via l'API Décroché
+- Fonctionnalités :
+  - Recevoir les notifications de leads qualifiés
+  - Consulter les leads récents
+  - Interagir avec le fondateur en langage naturel
+  - Commandes : /status, /leads, /rapport, /aide
+
+## Mission 5 — Objectif 10 000€ MRR / 60 jours
+
+### Funnel (Alex Hormozi / Russell Brunson)
+1. **Lead magnet** : Guide "5 astuces pour ne plus perdre un client sur le chantier" (opt-in email)
+2. **Essai gratuit** : 14 jours sans CB
+3. **Conversion** : À J+14, demande de CB ou arrêt
+4. **Upsell** : Pro → Artisan+ (50€ de plus, multi-comptes)
+5. **Downsell** : Abandon → offre à 49€/mois
+
+### KPIs
+| Métrique | Objectif |
+|---|---|
+| Leads/semaine | 100 |
+| Taux de conversion essai → payant | 20% |
+| MRR J30 | 790€ (10 clients) |
+| MRR J60 | 10 000€ (130 clients) |
+| Coût acquisition client | < 30€ |
+| LTV | > 500€ |
+
+### Channels de distribution
+1. **Google Maps** (Apify) + Email outreach
+2. **Facebook groups** artisans BTP
+3. **LinkedIn** (posts techniques)
+4. **Bouche-à-oreille** via les premiers clients
+5. **PagesJaunes** référencement
