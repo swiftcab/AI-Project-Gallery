@@ -98,7 +98,11 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=*** (récupérer dans le dashboard Stripe)
 ## Mission 4 — Chatbot Telegram IA
 
 ### Architecture
-- Bot Telegram (token : 8685856014:AAHwF4JJoQWBmmNGwEgJslzsjDMu9RkhmxY)
+- Bot Telegram — ⚠️ le token qui figurait ici en clair a été committé sur une
+  branche Git : il est compromis et doit être RÉVOQUÉ via @BotFather
+  (`/revoke`) puis régénéré. Le nouveau token vit UNIQUEMENT dans le `.env`
+  du VPS ou la config Hermes — jamais dans un fichier du repo (HERMES.md,
+  « RÈGLE SECRETS »).
 - Backend : DeepSeek v4-flash via l'API Décroché
 - Fonctionnalités :
   - Recevoir les notifications de leads qualifiés

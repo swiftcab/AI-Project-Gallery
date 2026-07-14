@@ -154,6 +154,39 @@ h2 { font-size: clamp(1.5rem, 3.6vw, 2.3rem); letter-spacing: -0.02em; line-heig
 .feature h3 { margin: 0 0 8px; font-size: 1rem; }
 .feature p { margin: 0; color: var(--muted); font-size: 0.88rem; }
 
+/* pricing — grille 3 plans */
+.plans { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
+.plan {
+  position: relative;
+  background: var(--card); border: 1px solid var(--card-border); border-radius: 20px;
+  padding: 30px 26px; transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.plan:hover { transform: translateY(-4px); }
+.plan-highlight {
+  background: linear-gradient(180deg, rgba(255, 178, 36, 0.1), var(--card));
+  border-color: rgba(255, 178, 36, 0.5);
+  box-shadow: 0 24px 70px rgba(255, 178, 36, 0.12);
+  transform: scale(1.03);
+}
+.plan-highlight:hover { transform: scale(1.03) translateY(-4px); }
+.plan-badge {
+  position: absolute; top: -13px; left: 50%; transform: translateX(-50%);
+  background: var(--amber); color: #16130a; font-size: 0.75rem; font-weight: 800;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  padding: 5px 14px; border-radius: 999px; white-space: nowrap;
+}
+.plan h3 { margin: 0 0 6px; font-size: 1.05rem; }
+.plan .price { font-size: 2.3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 4px; }
+.plan .price small { font-size: 0.95rem; font-weight: 500; color: var(--muted); }
+.plan ul { list-style: none; padding: 0; margin: 20px 0 26px; }
+.plan li { padding: 7px 0; color: var(--muted); font-size: 0.9rem; }
+.plan li::before { content: "✓  "; color: var(--green); font-weight: 700; }
+@media (max-width: 900px) {
+  .plans { grid-template-columns: 1fr; max-width: 440px; margin-left: auto; margin-right: auto; }
+  .plan-highlight { transform: none; }
+  .plan-highlight:hover { transform: translateY(-4px); }
+}
+
 /* pricing */
 .pricing-card {
   max-width: 460px; margin: 0 auto; text-align: center;

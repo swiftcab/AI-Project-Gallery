@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, claude/construction-ai-sales-agent-felxyp]
   pull_request:
 
 jobs:
@@ -49,3 +49,45 @@ jobs:
         run: npx prisma migrate deploy
       - name: Tests d'intégration (flux critiques)
         run: INTEGRATION=1 npm run test:int
+
+  # ISTQB niveau 3 — smoke système sur l'app bâtie et servie (docs/testing-strategy.md)
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: decroche
+          POSTGRES_PASSWORD: decroche
+          POSTGRES_DB: decroche_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U decroche"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://decroche:decroche@localhost:5432/decroche_test
+      REDIS_URL: redis://localhost:6379
+      MESSAGING_PROVIDER: fake
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx prisma migrate deploy
+      - run: npx playwright install --with-deps chromium
+      - name: Build production
+        run: npm run build
+      - name: Démarrage + smoke système
+        run: |
+          npm run start &
+          for i in $(seq 1 30); do curl -sf http://localhost:3000/ -o /dev/null && break; sleep 1; done
+          npm run test:e2e

@@ -26,6 +26,8 @@ Un seul déployable : app Next + process worker (`src/worker.ts`), Docker Compos
    entrée CHANGELOG + `test:prompts` vert. Jamais d'édition d'une version publiée.
 4. **Aucun envoi externe (SMS/LLM) dans une route HTTP** — tout passe par BullMQ
    (`src/queues/`). Les webhooks écrivent en base et enqueue, c'est tout.
+   Exception documentée : `/api/checkout` (création de session Stripe,
+   nécessairement synchrone — l'utilisateur attend l'URL de redirection).
 5. **SMS proactifs (nudge, notifs différées) uniquement via `src/lib/sendWindow.ts`**
    (8h–21h Paris, jamais dimanche/férié — règles opérateurs FR).
 6. **CI déterministe** : les tests unitaires/intégration utilisent `FakeLLMProvider`

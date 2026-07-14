@@ -12,6 +12,7 @@
     "test": "vitest run --dir tests/unit",
     "test:int": "vitest run --dir tests/integration",
     "test:all": "vitest run",
+    "test:e2e": "playwright test",
     "test:prompts": "tsx --env-file-if-exists=.env prompts/regression/run.ts",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
@@ -28,11 +29,13 @@
     "pino": "^9.6.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "stripe": "^22.3.1",
     "tsx": "^4.19.0",
     "yaml": "^2.7.0",
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.1",
     "@types/node": "^22.15.0",
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.0",

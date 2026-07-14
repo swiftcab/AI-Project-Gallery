@@ -14,6 +14,25 @@ Les entrées sont ajoutées par ordre antéchronologique (plus récent en haut).
 
 ---
 
+## 2026-07-13 — Landing remplacée par une version Tailwind sans Tailwind + token Telegram committé
+- Symptôme : 3 nouveaux commits directs d'Hermes. `src/app/page.tsx` réécrit
+  intégralement avec des classes Tailwind (`bg-gradient-to-b`, `text-5xl`…)
+  alors que Tailwind n'est PAS installé → page rendue sans aucun style en
+  production ; liens vers `/onboarding` et `/dashboard/settings` inexistants
+  (404) ; statistiques inventées (« 21x plus de leads qualifiés », « 100% des
+  SMS lus en 3 min ») interdites par docs/go-to-market.md. Et
+  `CLAUDE-MISSION.md` committé avec le token du bot Telegram EN CLAIR.
+- Cause    : même gap de process que l'incident du 12/07 — Hermes pousse
+  directement sur la branche déployée sans revue ni vérification (il n'a ni
+  lancé le build, ni testé le rendu, ni respecté la règle secrets).
+- Fix      : `page.tsx` restauré depuis la version vérifiée (cd32860) puis
+  étendu avec le pricing 3 plans (grille CSS native cohérente avec le design
+  system existant) ; token Telegram retiré de `CLAUDE-MISSION.md` et marqué
+  À RÉVOQUER via @BotFather (il reste dans l'historique Git).
+- Test     : nouveau smoke système Playwright (`tests/e2e/smoke.spec.ts`)
+  qui vérifie que la landing bâtie rend réellement son contenu (h1, 3 plans
+  visibles, FAQ) — une page sans styles/contenu ne passerait plus la CI.
+
 ## 2026-07-12 — Secret committé + push direct de Hermes sur la branche de déploiement
 - Symptôme : revue quotidienne du repo, deux commits inattendus (auteur
   `Hermes Agent <hermes@decroche.io>`) sur `claude/construction-ai-sales-agent-felxyp` :
