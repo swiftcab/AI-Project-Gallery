@@ -1,5 +1,4 @@
 import Reveal from "./Reveal";
-import CheckoutButton from "./CheckoutButton";
 import { PLANS } from "@/lib/pricing";
 
 /**
@@ -80,7 +79,7 @@ export default function LandingPage() {
             <span className="logo-dot" aria-hidden />
             Décroché
           </a>
-          <a className="btn btn-primary" href={CTA_HREF}>
+          <a className="btn btn-primary" href="/onboarding?plan=decouverte">
             Essai gratuit 14 j
           </a>
         </div>
@@ -102,7 +101,7 @@ export default function LandingPage() {
               fiche prête pour le rappel. Vous rappelez au bon moment — avec toutes les infos.
             </p>
             <div className="hero-ctas">
-              <a className="btn btn-primary" href={CTA_HREF}>
+              <a className="btn btn-primary" href="/onboarding?plan=decouverte">
                 Devenir client pilote →
               </a>
               <a className="btn btn-ghost" href="#comment">
@@ -275,13 +274,13 @@ export default function LandingPage() {
                       <li key={f}>{f}</li>
                     ))}
                   </ul>
-                  {plan.stripePriceEnvVar ? (
-                    <CheckoutButton plan={plan.id} label={plan.cta} primary={plan.highlighted} />
-                  ) : (
-                    <a className="btn btn-ghost" style={{ width: "100%", justifyContent: "center" }} href={CTA_HREF}>
-                      {plan.cta}
-                    </a>
-                  )}
+                  <a
+                    className={`btn ${plan.highlighted ? "btn-primary" : "btn-ghost"}`}
+                    style={{ width: "100%", justifyContent: "center" }}
+                    href={`/onboarding?plan=${plan.id}`}
+                  >
+                    {plan.cta}
+                  </a>
                 </div>
               ))}
             </div>
@@ -322,7 +321,7 @@ export default function LandingPage() {
               <p className="section-sub" style={{ margin: "0 auto 30px" }}>
                 Rejoignez les premiers artisans pilotes — tarif préférentiel à vie pour les 3 premiers.
               </p>
-              <a className="btn btn-primary" href={CTA_HREF}>
+              <a className="btn btn-primary" href="/onboarding?plan=decouverte">
                 Devenir client pilote →
               </a>
             </div>

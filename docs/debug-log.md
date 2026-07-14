@@ -14,6 +14,25 @@ Les entrées sont ajoutées par ordre antéchronologique (plus récent en haut).
 
 ---
 
+## 2026-07-14 — Faux négatifs intermittents en intégration (comptes fantômes)
+- Symptôme : `tests/integration/ops.test.ts` échouait par intermittence sur
+  `expect(accounts).toBe(1)`, recevant 2 ou 5 selon l'ordre d'exécution —
+  jamais en isolation, seulement quand une autre suite d'intégration
+  (`onboarding.test.ts`, ajoutée le jour même) tournait aussi.
+- Cause    : Vitest exécute les fichiers de test en parallèle par défaut
+  (plusieurs workers). Deux suites d'intégration qui partagent la même
+  base Postgres et font des assertions sur des COMPTEURS GLOBAUX
+  (`prisma.account.count()`) se marchent dessus : le `beforeAll` de l'une
+  vide la table `Account` pendant qu'une autre est en train d'y insérer.
+- Fix      : `vitest.config.ts` — `fileParallelism: false`. Les suites
+  d'intégration tournent maintenant en séquence (les tests unitaires,
+  rapides et isolés, n'en pâtissent pas). Complément :
+  `tests/integration/onboarding.test.ts` nettoie aussi le compte créé
+  (pas seulement l'utilisateur) en `afterEach` — un compte orphelin sans
+  utilisateur aurait quand même faussé le comptage d'une suite voisine.
+- Test     : `INTEGRATION=1 npm run test:int` — vérifié stable sur 2 runs
+  consécutifs après le fix (avant : échec ~1 run sur 2).
+
 ## 2026-07-13 — Landing remplacée par une version Tailwind sans Tailwind + token Telegram committé
 - Symptôme : 3 nouveaux commits directs d'Hermes. `src/app/page.tsx` réécrit
   intégralement avec des classes Tailwind (`bg-gradient-to-b`, `text-5xl`…)

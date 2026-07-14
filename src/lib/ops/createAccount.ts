@@ -37,3 +37,51 @@ export async function createPilotAccount(prisma: PrismaClient, raw: unknown) {
 }
 
 export { createAccountInput };
+
+const signupInput = z.object({
+  companyName: z.string().min(1).max(120),
+  trade: z.nativeEnum(Trade),
+  ownerFirstName: z.string().min(1).max(60),
+  ownerMobile: z
+    .string()
+    .regex(/^\+?[0-9\s]{6,20}$/, "numéro invalide"),
+  email: z.string().email(),
+  departments: z
+    .array(z.string().regex(/^\d{2,3}$/))
+    .max(20)
+    .default([]),
+  plan: z.string().default("decouverte"),
+});
+
+export type SignupInput = z.infer<typeof signupInput>;
+
+/**
+ * Onboarding self-serve (formulaire /onboarding) — PAS de numéro voix/SMS
+ * à la création : leur provisioning reste manuel (tech-debt.md #2, aucune
+ * intégration Twilio/smsmode automatisée). Le compte existe en TRIAL dès
+ * la création ; l'équipe complète le PhoneLine au moment de l'activation
+ * téléphonique avec le client (docs/deployment-runbook.md §10).
+ * Idempotent sur l'email : un second essai avec le même email retourne le
+ * compte existant plutôt que de planter (évite un double-submit accidentel).
+ */
+export async function createSignupAccount(prisma: PrismaClient, raw: unknown) {
+  const input = signupInput.parse(raw);
+
+  const existingUser = await prisma.user.findUnique({ where: { email: input.email }, include: { account: true } });
+  if (existingUser) return { account: existingUser.account, created: false as const };
+
+  const account = await prisma.account.create({
+    data: {
+      companyName: input.companyName,
+      trade: input.trade,
+      ownerFirstName: input.ownerFirstName,
+      ownerMobile: input.ownerMobile,
+      departments: input.departments,
+      trialEndsAt: new Date(Date.now() + 14 * 24 * 3600 * 1000),
+      users: { create: { email: input.email } },
+    },
+  });
+  return { account, created: true as const };
+}
+
+export { signupInput };
