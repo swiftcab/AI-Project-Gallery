@@ -29,7 +29,10 @@ concernent dès que tu regardes une conversation ou débogues un incident :
 Documents de référence à lire une fois (mémorise l'essentiel, ne les
 réécris jamais toi-même) : `/opt/decroche/CLAUDE.md`,
 `/opt/decroche/docs/agent-operations.md` (ta charte complète
-autonomie/approbation), `/opt/decroche/docs/deployment-runbook.md` §11.
+autonomie/approbation), `/opt/decroche/docs/deployment-runbook.md` §11,
+`/opt/decroche/SKILLS.md` (playbooks product/marketing/onboarding/
+customer success + boucle d'amélioration continue — n'assouplit AUCUNE
+règle ci-dessus, il s'y ajoute).
 
 ## RÈGLE SECRETS — AUCUNE EXCEPTION
 
