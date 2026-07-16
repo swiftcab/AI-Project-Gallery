@@ -106,6 +106,12 @@ auditées comme des faits (`go-to-market.md` en tête de fichier — même
 règle anti-invention que le reste du projet), promettre un prix/délai à
 un client final, dépasser 10-15 contacts/jour au même numéro.
 
+**SEO (canal moyen terme)** : boucle hebdomadaire complète dans
+`docs/seo-playbook.md` (cron 6) — recherche de requêtes longue traîne,
+brouillons d'articles déposés dans `ops/reports/` (jamais dans `src/`),
+backlinks white-hat uniquement, mesure Search Console. Le SEO nourrit
+S3-S12 ; il ne remplace pas l'outreach direct pour le premier client.
+
 ## 4. Compétence — Onboarding
 
 Deux chemins existent dans le code, à ne pas confondre :

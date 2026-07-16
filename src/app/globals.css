@@ -55,7 +55,39 @@ img { max-width: 100%; }
 .btn-ghost:hover { background: rgba(255, 255, 255, 0.08); }
 
 /* ===== Hero ===== */
-.hero { position: relative; padding: 88px 0 72px; }
+.hero { position: relative; padding: 96px 0 80px; overflow: hidden; }
+
+/* voile "aurora" animé — grand visuel d'ambiance derrière le hero */
+.hero-aurora {
+  position: absolute; inset: -30% -15% auto -15%; height: 150%;
+  background:
+    radial-gradient(38% 45% at 20% 28%, rgba(255, 178, 36, 0.17), transparent 70%),
+    radial-gradient(44% 52% at 80% 18%, rgba(76, 201, 240, 0.15), transparent 70%),
+    radial-gradient(32% 42% at 55% 80%, rgba(255, 120, 71, 0.1), transparent 70%);
+  filter: blur(70px);
+  animation: aurora 20s ease-in-out infinite alternate;
+  pointer-events: none; z-index: -2;
+}
+
+/* fine grille technique, fondue vers le bas — donne la profondeur "produit" */
+.hero-gridlines {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 54px 54px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
+  pointer-events: none; z-index: -1;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 0.85rem; font-weight: 600; color: var(--cyan);
+  background: rgba(76, 201, 240, 0.09);
+  border: 1px solid rgba(76, 201, 240, 0.28);
+  border-radius: 999px; padding: 7px 16px; margin: 0 0 22px;
+}
 .hero-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
 .hero h1 {
   font-size: clamp(2rem, 5.4vw, 3.4rem);
@@ -211,6 +243,34 @@ h2 { font-size: clamp(1.5rem, 3.6vw, 2.3rem); letter-spacing: -0.02em; line-heig
 .faq details[open] summary::after { transform: rotate(45deg); }
 .faq details p { color: var(--muted); font-size: 0.92rem; margin: 12px 0 2px; }
 
+/* ===== Blog ===== */
+.blog-list { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 42px; }
+.blog-card {
+  background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius);
+  padding: 26px 22px; text-decoration: none; display: flex; flex-direction: column; gap: 10px;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.blog-card:hover { transform: translateY(-4px); border-color: rgba(255, 178, 36, 0.45); }
+.blog-card h3 { margin: 0; font-size: 1.05rem; line-height: 1.35; }
+.blog-card p { margin: 0; color: var(--muted); font-size: 0.9rem; flex: 1; }
+.blog-card time { color: var(--muted); font-size: 0.78rem; }
+.blog-card .read-more { color: var(--amber); font-weight: 700; font-size: 0.88rem; }
+@media (max-width: 900px) { .blog-list { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; } }
+
+.article { max-width: 720px; margin: 0 auto; padding: 56px 20px 72px; }
+.article h1 { font-size: clamp(1.7rem, 4.4vw, 2.6rem); line-height: 1.12; letter-spacing: -0.03em; margin: 14px 0 10px; }
+.article .article-meta { color: var(--muted); font-size: 0.85rem; margin-bottom: 34px; }
+.article h2 { font-size: 1.4rem; margin: 40px 0 12px; }
+.article p, .article li { color: #c6cbd8; font-size: 1rem; line-height: 1.75; }
+.article ul, .article ol { padding-left: 22px; }
+.article strong { color: var(--text); }
+.article .article-cta {
+  margin-top: 48px; padding: 30px 26px; text-align: center;
+  background: linear-gradient(180deg, rgba(255, 178, 36, 0.09), var(--card));
+  border: 1px solid rgba(255, 178, 36, 0.35); border-radius: 18px;
+}
+.article .article-cta p { margin: 0 0 18px; }
+
 /* CTA final */
 .final-cta {
   text-align: center;
@@ -228,6 +288,10 @@ footer { border-top: 1px solid var(--card-border); padding: 34px 0 48px; color: 
 
 /* ===== Animations ===== */
 @keyframes bubbleIn { to { opacity: 1; transform: none; } }
+@keyframes aurora {
+  from { transform: translate(0, 0) scale(1) rotate(0deg); }
+  to { transform: translate(4%, 6%) scale(1.15) rotate(3deg); }
+}
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 @keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(40px, 30px) scale(1.12); } }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }

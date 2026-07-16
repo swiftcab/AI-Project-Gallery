@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     locale: "fr_FR",
     url: "https://qualifyourlead.com",
     siteName: "Décroché",
-    title: "Vous étiez sur un chantier. Le client a appelé le suivant sur Google.",
+    title: "Ne perdez plus jamais un client — Décroché, l'assistant SMS des artisans",
     description:
       "Décroché répond par SMS à vos appels manqués, qualifie le client et prépare votre rappel. Pour artisans du BTP. Essai 14 jours.",
   },

@@ -86,14 +86,19 @@ export default function LandingPage() {
       </nav>
 
       <header className="hero">
+        <div className="hero-aurora" aria-hidden />
+        <div className="hero-gridlines" aria-hidden />
         <div className="blob blob-a" aria-hidden />
         <div className="blob blob-b" aria-hidden />
         <div className="container hero-grid">
           <div>
+            <p className="hero-eyebrow">
+              Vous étiez sur un chantier. Le client a appelé le suivant sur Google.
+            </p>
             <h1>
-              Vous étiez sur un chantier.
+              Ne perdez <span className="accent">plus jamais</span>
               <br />
-              <span className="accent">Le client a appelé le suivant</span> sur Google.
+              un client.
             </h1>
             <p className="sub">
               Chaque appel manqué pendant que vous travaillez est un devis qui part chez un concurrent.
@@ -102,13 +107,13 @@ export default function LandingPage() {
             </p>
             <div className="hero-ctas">
               <a className="btn btn-primary" href="/onboarding?plan=decouverte">
-                Devenir client pilote →
+                Essai gratuit 14 jours →
               </a>
               <a className="btn btn-ghost" href="#comment">
                 Voir comment ça marche
               </a>
             </div>
-            <p className="hero-note">Sans engagement · Vous gardez votre numéro · Installation en 10 minutes</p>
+            <p className="hero-note">Sans engagement · Sans carte bancaire · Vous gardez votre numéro · Installé en 10 minutes</p>
           </div>
 
           <div className="phone" role="img" aria-label="Exemple de conversation SMS entre l'assistant Décroché et un client">
@@ -338,7 +343,7 @@ export default function LandingPage() {
           <div>
             Plombiers · Électriciens · Chauffagistes · Maçons · Couvreurs
             <br />
-            <a href={CTA_HREF}>pilote@qualifyourlead.com</a>
+            <a href="/blog">Blog</a> · <a href={CTA_HREF}>pilote@qualifyourlead.com</a>
           </div>
         </div>
       </footer>
