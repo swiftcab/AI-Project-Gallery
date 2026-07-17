@@ -1,9 +1,9 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getConfig } from "@/lib/config";
 import { logger } from "@/lib/logger";
 import { enqueue } from "@/queues";
+import { verifyTwilioSignature } from "@/lib/twilioSignature";
 
 export const dynamic = "force-dynamic";
 
@@ -11,19 +11,6 @@ export const dynamic = "force-dynamic";
  * Webhook Twilio Voice : reçoit l'appel renvoyé par *61*.
  * Répond un TwiML court (message + raccroché) et déclenche la conversation SMS.
  */
-
-function verifyTwilioSignature(req: NextRequest, url: string, params: Record<string, string>): boolean {
-  const token = getConfig().TWILIO_AUTH_TOKEN;
-  if (!token) return getConfig().NODE_ENV !== "production"; // dev/test sans token
-  const signature = req.headers.get("x-twilio-signature") ?? "";
-  const data = url + Object.keys(params).sort().map((k) => k + params[k]).join("");
-  const expected = createHmac("sha1", token).update(Buffer.from(data, "utf8")).digest("base64");
-  try {
-    return timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
-  } catch {
-    return false;
-  }
-}
 
 const TWIML = `<?xml version="1.0" encoding="UTF-8"?>
 <Response>

@@ -2,16 +2,21 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/logger";
+import { getConfig } from "@/lib/config";
 import { getMessaging } from "@/lib/messaging";
 import { isOptOut, OPT_OUT_CONFIRMATION } from "@/agent/guardrails";
 import { enqueue } from "@/queues";
+import { verifyTwilioSignature } from "@/lib/twilioSignature";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Webhook SMS entrant (agrégateur). Payload normalisé attendu :
- * { from, to, body } — l'adapter du fournisseur réel (smsmode) mappe son
- * format vers celui-ci via la config du webhook (à figer au spike J1).
+ * Webhook SMS entrant. Deux formats acceptés :
+ * - JSON générique { from, to, body } — agrégateur type smsmode
+ *   (à figer au spike J1, cf. tech-debt.md #7).
+ * - form-urlencoded Twilio (From/To/Body + X-Twilio-Signature), normalisé
+ *   vers le même schéma avant traitement — la logique métier ci-dessous ne
+ *   connaît qu'un seul format, jamais le format fournisseur brut.
  * L'OPT-OUT (STOP) est traité ICI, dans la gateway — jamais délégué au LLM.
  */
 const inboundSchema = z.object({
@@ -20,10 +25,29 @@ const inboundSchema = z.object({
   body: z.string().min(1).max(2000),
 });
 
+async function parseTwilioForm(req: NextRequest): Promise<z.infer<typeof inboundSchema> | null> {
+  const form = await req.formData();
+  const params: Record<string, string> = {};
+  form.forEach((v, k) => {
+    if (typeof v === "string") params[k] = v;
+  });
+  const url = `${getConfig().APP_BASE_URL}/api/hooks/sms`;
+  if (!verifyTwilioSignature(req, url, params)) return null;
+  const parsed = inboundSchema.safeParse({ from: params.From, to: params.To, body: params.Body });
+  return parsed.success ? parsed.data : null;
+}
+
 export async function POST(req: NextRequest) {
+  const contentType = req.headers.get("content-type") ?? "";
   let payload: z.infer<typeof inboundSchema>;
   try {
-    payload = inboundSchema.parse(await req.json());
+    if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
+      const parsed = await parseTwilioForm(req);
+      if (!parsed) return new NextResponse("forbidden", { status: 403 });
+      payload = parsed;
+    } else {
+      payload = inboundSchema.parse(await req.json());
+    }
   } catch {
     return new NextResponse("bad request", { status: 400 });
   }
