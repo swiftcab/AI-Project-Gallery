@@ -68,6 +68,61 @@ function JsonLd() {
 
 const CTA_HREF = "mailto:pilote@qualifyourlead.com?subject=Je%20veux%20tester%20D%C3%A9croch%C3%A9";
 
+/**
+ * Illustration hero : artisan sur un échafaudage, casque et outil en main,
+ * téléphone qui sonne à côté de lui (ondes animées) — pose visuellement la
+ * scène que le sous-titre décrit. Trait géométrique, pas de photo/asset
+ * externe, cohérent avec le style icônes déjà utilisé (features, phone).
+ */
+function ArtisanScene() {
+  return (
+    <svg
+      className="hero-illustration"
+      viewBox="0 0 340 340"
+      role="img"
+      aria-label="Un artisan sur un chantier, casque de sécurité et outil en main ; son téléphone sonne à côté de lui sans qu'il puisse répondre"
+    >
+      {/* échafaudage */}
+      <rect x="18" y="268" width="230" height="10" rx="3" fill="var(--card-border)" />
+      <rect x="40" y="278" width="10" height="46" fill="var(--card-border)" />
+      <rect x="200" y="278" width="10" height="46" fill="var(--card-border)" />
+      <line x1="50" y1="278" x2="200" y2="324" stroke="var(--card-border)" strokeWidth="6" />
+
+      {/* ombre au sol */}
+      <ellipse cx="120" cy="330" rx="70" ry="8" fill="rgba(0,0,0,0.35)" />
+
+      {/* jambes */}
+      <rect x="98" y="210" width="16" height="60" rx="7" fill="#1b1f2a" />
+      <rect x="132" y="210" width="16" height="60" rx="7" fill="#1b1f2a" />
+
+      {/* torse / gilet */}
+      <path d="M88 130 L162 130 L156 216 L94 216 Z" fill="var(--cyan)" opacity="0.9" />
+      <path d="M112 138 L96 210 M138 138 L154 210" stroke="rgba(255,255,255,0.55)" strokeWidth="6" strokeLinecap="round" />
+
+      {/* bras (un bras levé tenant l'outil) */}
+      <rect x="150" y="140" width="15" height="60" rx="7" fill="var(--cyan)" transform="rotate(28 158 150)" />
+      <rect x="78" y="140" width="15" height="55" rx="7" fill="var(--cyan)" />
+
+      {/* outil (clé) dans la main levée */}
+      <rect x="185" y="96" width="10" height="46" rx="4" fill="var(--amber)" transform="rotate(28 190 100)" />
+
+      {/* tête + casque */}
+      <circle cx="125" cy="108" r="22" fill="#e7b98f" />
+      <path d="M100 104 a25 25 0 0 1 50 0 z" fill="var(--amber)" />
+      <rect x="98" y="100" width="54" height="8" rx="4" fill="var(--amber)" />
+
+      {/* téléphone qui sonne, posé à côté */}
+      <g>
+        <rect x="230" y="150" width="34" height="58" rx="8" fill="#12141c" stroke="var(--card-border)" strokeWidth="2" />
+        <rect x="238" y="160" width="18" height="30" rx="2" fill="var(--amber-soft)" />
+        <circle className="ring ring-1" cx="247" cy="179" r="10" fill="none" stroke="var(--amber)" strokeWidth="3" />
+        <circle className="ring ring-2" cx="247" cy="179" r="10" fill="none" stroke="var(--amber)" strokeWidth="3" />
+        <circle className="ring ring-3" cx="247" cy="179" r="10" fill="none" stroke="var(--amber)" strokeWidth="3" />
+      </g>
+    </svg>
+  );
+}
+
 export default function LandingPage() {
   return (
     <>
@@ -116,31 +171,35 @@ export default function LandingPage() {
             <p className="hero-note">Sans engagement · Sans carte bancaire · Vous gardez votre numéro · Installé en 10 minutes</p>
           </div>
 
-          <div className="phone" role="img" aria-label="Exemple de conversation SMS entre l'assistant Décroché et un client">
-            <div className="phone-head">
-              <div className="phone-avatar" aria-hidden>🔧</div>
-              <div>
-                <div className="phone-title">Plomberie Karim — assistant</div>
-                <div className="phone-sub">appel manqué il y a 8 secondes</div>
+          <div className="hero-visual">
+            <ArtisanScene />
+
+            <div className="phone" role="img" aria-label="Exemple de conversation SMS entre l'assistant Décroché et un client">
+              <div className="phone-head">
+                <div className="phone-avatar" aria-hidden>🔧</div>
+                <div>
+                  <div className="phone-title">Plomberie Karim — assistant</div>
+                  <div className="phone-sub">appel manqué il y a 8 secondes</div>
+                </div>
               </div>
-            </div>
-            <div className="thread">
-              <div className="bubble agent b1">
-                Bonjour, ici l&apos;assistant de Plomberie Karim. Karim est sur un chantier et vous rappelle dès
-                que possible. De quoi s&apos;agit-il ?
-              </div>
-              <div className="bubble client b2">J&apos;ai une fuite sous l&apos;évier, ça coule pas mal… Sophie, Lyon 3e</div>
-              <div className="bubble agent b3">
-                Merci Sophie, c&apos;est noté. Quel créneau vous arrange pour être rappelée ?
-              </div>
-              <div className="bubble client b4">Avant 9h demain si possible 🙏</div>
-              <div className="bubble agent b5">
-                Parfait : fuite sous évier (69003), rappel demain avant 9h. Karim vous rappelle.
-              </div>
-              <div className="bubble fiche b6">
-                <strong>📋 Fiche envoyée à Karim</strong>
-                <br />
-                URGENT — Sophie (69003) : fuite sous évier en cours. Rappel souhaité avant 9h. 06 12 34 56 78
+              <div className="thread">
+                <div className="bubble agent b1">
+                  Bonjour, ici l&apos;assistant de Plomberie Karim. Karim est sur un chantier et vous rappelle dès
+                  que possible. De quoi s&apos;agit-il ?
+                </div>
+                <div className="bubble client b2">J&apos;ai une fuite sous l&apos;évier, ça coule pas mal… Sophie, Lyon 3e</div>
+                <div className="bubble agent b3">
+                  Merci Sophie, c&apos;est noté. Quel créneau vous arrange pour être rappelée ?
+                </div>
+                <div className="bubble client b4">Avant 9h demain si possible 🙏</div>
+                <div className="bubble agent b5">
+                  Parfait : fuite sous évier (69003), rappel demain avant 9h. Karim vous rappelle.
+                </div>
+                <div className="bubble fiche b6">
+                  <strong>📋 Fiche envoyée à Karim</strong>
+                  <br />
+                  URGENT — Sophie (69003) : fuite sous évier en cours. Rappel souhaité avant 9h. 06 12 34 56 78
+                </div>
               </div>
             </div>
           </div>

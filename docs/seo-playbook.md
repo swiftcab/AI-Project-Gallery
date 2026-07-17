@@ -112,6 +112,62 @@ publie 1 article/semaine bien fait, on mesure à partir de la Search
 Console, et on double la mise sur ce qui montre des impressions plutôt
 que sur ce qu'on avait deviné.
 
+## Ordre à coller dans Hermes (une fois, pour armer la boucle)
+
+Texte exact à donner à Hermes (config/prompt, section tâches récurrentes) :
+
+```
+Mission SEO hebdomadaire pour Décroché (docs/seo-playbook.md sur le repo) :
+
+Chaque mercredi (cron decroche-seo-hebdo, 7h UTC) :
+1. Recherche 30 min : Google Autocomplete + "Autres questions posées" sur
+   les thèmes appels manqués / renvoi d'appel / secrétariat artisan BTP.
+   Liste 3-5 requêtes candidates avec leur source.
+2. Si tu as accès à la Search Console (une fois branchée par le fondateur) :
+   priorité aux requêtes où le site apparaît déjà en position 5-20 avec des
+   impressions — améliorer un article existant plutôt qu'en créer un nouveau.
+3. Choisis LA meilleure requête et rédige un brouillon d'article complet au
+   format de src/lib/blog.ts (titre, description, sections avec h2/p/ul).
+4. Dépose-le dans ops/reports/seo-brouillon-<slug>.md, commit + push —
+   UNIQUEMENT ce fichier. Ne touche jamais à src/, jamais à blog.ts
+   toi-même : c'est le CTO qui intègre après relecture.
+5. Ajoute au même fichier 3 lignes : pages indexées, impressions, clics
+   (si Search Console accessible ; sinon écris "Search Console non
+   accessible" — n'invente aucun chiffre).
+
+INTERDITS ABSOLUS (comme partout ailleurs dans ta charte) :
+- Aucune statistique inventée, aucun chiffre concurrent non audité.
+- Aucune promesse de prix/délai dans un contenu.
+- Aucun backlink automatisé, acheté, ou échangé (link scheme = pénalité).
+- Aucun commit hors ops/reports/ dans cette mission.
+```
+
+## Contrôle hebdomadaire du fondateur (boucle d'optimisation)
+
+Chaque semaine (ex. le jeudi, après le cron du mercredi), 10 minutes :
+
+1. **Ouvrir le dernier fichier** `ops/reports/seo-brouillon-<slug>.md` sur
+   GitHub (onglet **Code** du repo → dossier `ops/reports/` → trier par
+   date de commit) — vérifier qu'il existe. S'il n'existe pas, c'est un
+   signal (cron cassé ou Hermes bloqué), pas un jour sans travail à faire.
+2. **Lire la requête choisie et sa source** (autocomplete/PAA/Search
+   Console) — a-t-elle un sens commercial ? Si non, dis-le au prochain
+   point avec le CTO plutôt que de laisser publier.
+3. **Comparer aux 3 métriques** (pages indexées, impressions, clics) de
+   la semaine précédente — en hausse, stable, en baisse ? Une baisse sur
+   2 semaines consécutives = sujet à creuser avec le CTO, pas à ignorer.
+4. **Donner le go/no-go** au CTO (moi) sur le brouillon — je l'intègre,
+   corrige les faits si besoin, et pousse. Tu n'as pas besoin de lire le
+   texte complet chaque semaine, juste la pertinence du sujet + les 3 chiffres.
+5. **Ajuster UNE chose** si besoin (ex. resserrer les thèmes de
+   recherche, changer le jour du cron) — jamais cinq à la fois, pour
+   pouvoir attribuer l'effet du changement.
+
+Ce contrôle hebdomadaire EST la boucle d'amélioration continue : recherche
+→ production → mesure → un ajustement → recherche. Sans l'étape 4
+(validation humaine), Hermes publierait en autonomie totale sur un canal
+public — ce que sa charte interdit déjà (`agent-operations.md`).
+
 ### Cron 6 — SEO hebdo (mercredi 9h Paris = 7h UTC)
 
 ```

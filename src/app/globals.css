@@ -111,8 +111,28 @@ img { max-width: 100%; }
 .blob-a { width: 480px; height: 480px; background: rgba(255, 178, 36, 0.16); top: -140px; left: -120px; }
 .blob-b { width: 420px; height: 420px; background: rgba(76, 201, 240, 0.12); top: 120px; right: -140px; animation-delay: -8s; }
 
+/* ===== Scène hero : artisan + téléphone qui sonne, au-dessus de la fenêtre SMS ===== */
+.hero-visual { display: flex; flex-direction: column; align-items: flex-end; }
+.hero-illustration {
+  width: 190px; height: 190px; margin: 0 26px -26px 0; z-index: 0;
+  filter: drop-shadow(0 18px 34px rgba(0, 0, 0, 0.45));
+  animation: float 8s ease-in-out infinite; animation-delay: -2s;
+}
+.hero-illustration .ring {
+  transform-origin: 247px 179px;
+  animation: ringPulse 1.8s ease-out infinite;
+  opacity: 0;
+}
+.hero-illustration .ring-1 { animation-delay: 0s; }
+.hero-illustration .ring-2 { animation-delay: 0.5s; }
+.hero-illustration .ring-3 { animation-delay: 1s; }
+@media (max-width: 900px) {
+  .hero-illustration { display: none; }
+}
+
 /* ===== Fenêtre SMS animée ===== */
 .phone {
+  position: relative; z-index: 1;
   background: linear-gradient(180deg, #12141c, #0c0e14);
   border: 1px solid var(--card-border); border-radius: 26px;
   padding: 18px; max-width: 380px; margin-left: auto;
@@ -292,6 +312,11 @@ footer { border-top: 1px solid var(--card-border); padding: 34px 0 48px; color: 
   from { transform: translate(0, 0) scale(1) rotate(0deg); }
   to { transform: translate(4%, 6%) scale(1.15) rotate(3deg); }
 }
+@keyframes ringPulse {
+  0% { transform: scale(0.6); opacity: 0.9; }
+  70% { opacity: 0; }
+  100% { transform: scale(1.9); opacity: 0; }
+}
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
 @keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(40px, 30px) scale(1.12); } }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
@@ -300,6 +325,7 @@ footer { border-top: 1px solid var(--card-border); padding: 34px 0 48px; color: 
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
   .bubble { opacity: 1; transform: none; }
   .reveal { opacity: 1; transform: none; }
+  .hero-illustration .ring { opacity: 0; }
   html { scroll-behavior: auto; }
 }
 
