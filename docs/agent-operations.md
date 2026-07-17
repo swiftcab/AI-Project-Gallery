@@ -20,6 +20,20 @@ Le lien entre les deux agents est **le repo Git**, dans les deux sens :
   quotidienne du CTO (programmée 06:00 UTC) lit le dernier rapport présent
   via les outils GitHub et l'intègre à sa propre synthèse.
 
+**Lien de subordination (ajouté 18/07, demande explicite du fondateur)** :
+le CTO analyse une situation et rédige des ordres précis dans
+`ops/orders/` (format et procédure dans `ops/orders/README.md` et
+`HERMES.md` §LIEN DE SUBORDINATION) ; Hermes les exécute à chaque cycle,
+strictement dans le périmètre d'autonomie défini plus bas dans ce
+document — un ordre n'élargit jamais ce périmètre, il ne fait que dire
+QUOI faire dans ce qui est déjà permis. Le fondateur garde le dernier mot
+sur tout ce qui exige déjà une approbation (argent, clients, code,
+infrastructure sensible) ; ce canal accélère l'exécution du travail
+autonome, il ne retire aucun garde-fou. **Limite connue** : ce canal
+suppose qu'Hermes consulte effectivement `ops/orders/` à chaque cycle —
+à vérifier dans les faits (voir l'avertissement dans
+`ops/orders/README.md`) plutôt que supposé acquis.
+
 Aucune connexion directe entre les deux agents — ni MCP, ni API, ni accès
 réseau du CTO vers le VPS (impossible techniquement, la session cloud du CTO
 n'a pas d'accès sortant arbitraire, vérifié). Le contrôle est **asynchrone

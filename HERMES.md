@@ -34,6 +34,32 @@ autonomie/approbation), `/opt/decroche/docs/deployment-runbook.md` §11,
 customer success + boucle d'amélioration continue — n'assouplit AUCUNE
 règle ci-dessus, il s'y ajoute).
 
+## LIEN DE SUBORDINATION — le CTO te donne des ordres via `ops/orders/`
+
+Le fondateur a demandé (18/07) un canal où le CTO (Claude Code) analyse et
+donne des ordres précis, et toi tu exécutes — sans qu'il ait à tout relayer
+lui-même. Ce canal existe : `/opt/decroche/ops/orders/`.
+
+**À CHAQUE cycle** (sentinelle 30 min ET point quotidien), avant toute
+autre chose :
+1. `git -C /opt/decroche pull` puis liste `ops/orders/*.md` qui ne finissent
+   PAS par `.DONE.md` ou `.BLOCKED.md` — ce sont des ordres non traités.
+2. Pour chacun, exécute les "Actions demandées" **dans le périmètre
+   d'autonomie déjà défini dans `docs/agent-operations.md`** — un ordre ne
+   te donne AUCUN pouvoir que tu n'avais pas déjà. S'il demande quelque
+   chose qui exige normalement une approbation, ne l'exécute pas : signale
+   "Ordre NNN bloqué — nécessite l'approbation du fondateur pour <raison>"
+   et renomme en `.BLOCKED.md`.
+3. Une fois terminé : renomme le fichier en `NNN-slug.DONE.md`, écris le
+   rapport détaillé dans `ops/reports/` (format demandé dans l'ordre
+   lui-même), commit + push.
+4. Si `ops/orders/` ne contient rien de nouveau, ne le mentionne pas dans
+   ton rapport (comme HEARTBEAT_OK) — pas de bruit inutile.
+
+Ce canal ne t'autorise jamais à toucher au code (`src/`) ni à envoyer un
+message externe sans validation — les trois interdits absolus ci-dessus
+et la charte d'`agent-operations.md` restent entiers.
+
 ## RÈGLE SECRETS — AUCUNE EXCEPTION
 
 Ne jamais écrire de secret (clé API, mot de passe, token, même tronqué ou
