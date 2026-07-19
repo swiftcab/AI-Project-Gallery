@@ -7,7 +7,8 @@ import { expect, test } from "@playwright/test";
 
 test("la landing rend son contenu complet (hero, pricing 3 plans, FAQ)", async ({ page }) => {
   await page.goto("/");
-  await expect(page.locator("h1")).toContainText("chantier");
+  await expect(page.locator("h1")).toContainText("client");
+  await expect(page.locator(".hero-eyebrow")).toContainText("chantier");
   // les 3 plans sont visibles (le bug d'apparition au scroll ne doit jamais revenir)
   await expect(page.locator(".plan")).toHaveCount(3);
   await expect(page.locator(".plan-highlight")).toContainText("79 €");
