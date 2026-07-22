@@ -141,10 +141,9 @@ export default function LandingPage() {
       </nav>
 
       <header className="hero">
-        <div className="hero-aurora" aria-hidden />
-        <div className="hero-gridlines" aria-hidden />
-        <div className="blob blob-a" aria-hidden />
-        <div className="blob blob-b" aria-hidden />
+        {/* eslint-disable-next-line @next/next/no-img-element -- fond plein cadre, next/image ajouterait peu ici (une seule image, pas de responsive srcset nécessaire) */}
+        <img src="/hero.webp" alt="" aria-hidden className="hero-photo" />
+        <div className="hero-photo-overlay" aria-hidden />
         <div className="container hero-grid">
           <div>
             <p className="hero-eyebrow">

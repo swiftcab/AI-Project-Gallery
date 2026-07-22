@@ -57,28 +57,26 @@ img { max-width: 100%; }
 /* ===== Hero ===== */
 .hero { position: relative; padding: 96px 0 80px; overflow: hidden; }
 
-/* voile "aurora" animé — grand visuel d'ambiance derrière le hero */
-.hero-aurora {
-  position: absolute; inset: -30% -15% auto -15%; height: 150%;
-  background:
-    radial-gradient(38% 45% at 20% 28%, rgba(255, 178, 36, 0.17), transparent 70%),
-    radial-gradient(44% 52% at 80% 18%, rgba(76, 201, 240, 0.15), transparent 70%),
-    radial-gradient(32% 42% at 55% 80%, rgba(255, 120, 71, 0.1), transparent 70%);
-  filter: blur(70px);
-  animation: aurora 20s ease-in-out infinite alternate;
+/* photo de fond plein cadre — artisan en intervention (remplace l'aurore animée) */
+.hero-photo {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; object-position: right center;
   pointer-events: none; z-index: -2;
 }
-
-/* fine grille technique, fondue vers le bas — donne la profondeur "produit" */
-.hero-gridlines {
+/* dégradé sombre : lisibilité garantie du texte à gauche, la photo respire à droite */
+.hero-photo-overlay {
   position: absolute; inset: 0;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
-  background-size: 54px 54px;
-  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 75%);
+  background:
+    linear-gradient(100deg, var(--bg) 8%, rgba(8, 9, 13, 0.94) 32%, rgba(8, 9, 13, 0.6) 60%, rgba(8, 9, 13, 0.42) 100%),
+    linear-gradient(0deg, var(--bg) 0%, transparent 22%, transparent 78%, var(--bg) 100%);
   pointer-events: none; z-index: -1;
+}
+@media (max-width: 900px) {
+  /* écran étroit : "cover" ne montre plus qu'un bord de la photo (souvent le
+     pan clair) — on recentre le cadrage et on assombrit uniformément pour
+     garder le texte lisible quelle que soit la partie de la photo visible. */
+  .hero-photo { object-position: 38% center; }
+  .hero-photo-overlay { background: rgba(8, 9, 13, 0.8); }
 }
 
 .hero-eyebrow {
@@ -101,15 +99,6 @@ img { max-width: 100%; }
 .hero p.sub { font-size: clamp(1.02rem, 2vw, 1.2rem); color: var(--muted); margin: 0 0 32px; max-width: 34rem; }
 .hero-ctas { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
 .hero-note { color: var(--muted); font-size: 0.88rem; margin-top: 14px; }
-
-/* blobs d'arrière-plan */
-.blob {
-  position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.5;
-  pointer-events: none; z-index: -1;
-  animation: drift 16s ease-in-out infinite alternate;
-}
-.blob-a { width: 480px; height: 480px; background: rgba(255, 178, 36, 0.16); top: -140px; left: -120px; }
-.blob-b { width: 420px; height: 420px; background: rgba(76, 201, 240, 0.12); top: 120px; right: -140px; animation-delay: -8s; }
 
 /* ===== Scène hero : artisan + téléphone qui sonne, au-dessus de la fenêtre SMS ===== */
 .hero-visual { display: flex; flex-direction: column; align-items: flex-end; }
@@ -308,17 +297,12 @@ footer { border-top: 1px solid var(--card-border); padding: 34px 0 48px; color: 
 
 /* ===== Animations ===== */
 @keyframes bubbleIn { to { opacity: 1; transform: none; } }
-@keyframes aurora {
-  from { transform: translate(0, 0) scale(1) rotate(0deg); }
-  to { transform: translate(4%, 6%) scale(1.15) rotate(3deg); }
-}
 @keyframes ringPulse {
   0% { transform: scale(0.6); opacity: 0.9; }
   70% { opacity: 0; }
   100% { transform: scale(1.9); opacity: 0; }
 }
 @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-@keyframes drift { from { transform: translate(0, 0) scale(1); } to { transform: translate(40px, 30px) scale(1.12); } }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
 
 @media (prefers-reduced-motion: reduce) {
