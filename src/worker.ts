@@ -7,7 +7,9 @@ import {
   jobExpireConversation,
   jobNotifyOwner,
   jobNudge,
+  jobSendEmail,
   jobStartConversation,
+  jobTelegramCommand,
 } from "./queues/jobs";
 
 const handlers: Record<JobName, (payload: never) => Promise<void>> = {
@@ -16,6 +18,8 @@ const handlers: Record<JobName, (payload: never) => Promise<void>> = {
   nudge: jobNudge as never,
   expireConversation: jobExpireConversation as never,
   notifyOwner: jobNotifyOwner as never,
+  sendEmail: jobSendEmail as never,
+  telegramCommand: jobTelegramCommand as never,
 };
 
 const worker = new Worker(

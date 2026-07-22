@@ -8,7 +8,9 @@ export type JobName =
   | "agentTurn"
   | "nudge"
   | "expireConversation"
-  | "notifyOwner";
+  | "notifyOwner"
+  | "sendEmail"
+  | "telegramCommand";
 
 export interface JobPayloads {
   startConversation: { conversationId: string };
@@ -16,6 +18,8 @@ export interface JobPayloads {
   nudge: { conversationId: string };
   expireConversation: { conversationId: string };
   notifyOwner: { conversationId: string };
+  sendEmail: { to: string; template: "welcome"; vars: { companyName: string; ownerFirstName: string } };
+  telegramCommand: { chatId: string; text: string };
 }
 
 let queue: Queue | null = null;

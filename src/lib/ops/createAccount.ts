@@ -1,5 +1,7 @@
 import { PrismaClient, Trade } from "@prisma/client";
 import { z } from "zod";
+import { enqueue } from "@/queues";
+import { logger } from "@/lib/logger";
 
 const createAccountInput = z.object({
   companyName: z.string().min(1),
@@ -81,6 +83,20 @@ export async function createSignupAccount(prisma: PrismaClient, raw: unknown) {
       users: { create: { email: input.email } },
     },
   });
+
+  // Best-effort : un Redis indisponible ne doit jamais faire échouer
+  // l'inscription elle-même (CLAUDE.md §4 — l'envoi passe par la queue,
+  // jamais en synchrone ici).
+  try {
+    await enqueue("sendEmail", {
+      to: input.email,
+      template: "welcome",
+      vars: { companyName: input.companyName, ownerFirstName: input.ownerFirstName },
+    });
+  } catch (err) {
+    logger.warn({ accountId: account.id, err: String(err) }, "onboarding.welcome_email_enqueue_failed");
+  }
+
   return { account, created: true as const };
 }
 

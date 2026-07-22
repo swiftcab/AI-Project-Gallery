@@ -24,6 +24,25 @@ const envSchema = z.object({
   TWILIO_ACCOUNT_SID: z.string().default(""),
   TWILIO_AUTH_TOKEN: z.string().default(""),
 
+  // --- Fallback LLM (docs/tech-debt.md — DeepSeek reste le fournisseur principal) ---
+  LLM_FALLBACK_PROVIDER: z.enum(["none", "openai"]).default("none"),
+  OPENAI_API_KEY: z.string().default(""),
+  OPENAI_MODEL: z.string().default("gpt-4o-mini"),
+
+  // --- Bot Telegram admin (produit — distinct du bot Hermes/COO, cf. docs/debug-log.md) ---
+  TELEGRAM_BOT_TOKEN: z.string().default(""),
+  // Un seul chat autorisé à interroger le bot (évite d'exposer les leads à
+  // qui trouverait le bot) — l'ID numérique du chat Telegram du fondateur.
+  TELEGRAM_ADMIN_CHAT_ID: z.string().default(""),
+  // Vérifié via l'en-tête X-Telegram-Bot-Api-Secret-Token (paramètre
+  // secret_token de setWebhook) — jamais de secret par défaut en prod.
+  TELEGRAM_WEBHOOK_SECRET: z.string().default(""),
+
+  // --- Email transactionnel (Brevo) ---
+  EMAIL_PROVIDER: z.enum(["fake", "brevo"]).default("fake"),
+  BREVO_API_KEY: z.string().default(""),
+  BREVO_SENDER_EMAIL: z.string().default("pilote@qualifyourlead.com"),
+
   DASHBOARD_USER: z.string().default("admin"),
   DASHBOARD_PASS: z.string().default(""),
 });

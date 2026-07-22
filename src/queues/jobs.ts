@@ -2,6 +2,10 @@ import { prisma } from "@/lib/db";
 import { convLogger, logger } from "@/lib/logger";
 import { getLLM } from "@/lib/llm";
 import { getMessaging } from "@/lib/messaging";
+import { getEmail } from "@/lib/email";
+import { renderTemplate } from "@/lib/email/templates";
+import { formatLeadsMessage, formatStatusMessage, sendTelegramMessage, TELEGRAM_HELP_TEXT } from "@/lib/telegram";
+import { getOpsStatus, getRecentQualifiedLeads } from "@/lib/ops/status";
 import { canSendProactive, delayUntilNextWindow, withinQuietHours } from "@/lib/sendWindow";
 import { greetingSms, renderSystemPrompt, type PromptContext } from "@/agent/prompts";
 import { fallbackOwnerSummary, runAgentTurn } from "@/agent/qualifier";
@@ -249,6 +253,32 @@ export async function jobNotifyOwner({ conversationId }: JobPayloads["notifyOwne
     data: { accountId: account.id, kind: "notify.sms", payload: { conversationId, urgent } },
   });
   log.info("owner.notified");
+}
+
+/** Job: email transactionnel (ex. bienvenue post-onboarding) — jamais envoyé
+ * de façon synchrone dans une route HTTP (CLAUDE.md §4), toujours via cette queue. */
+export async function jobSendEmail({ to, template, vars }: JobPayloads["sendEmail"]) {
+  const { subject, html } = renderTemplate(template, vars);
+  const { providerId } = await getEmail().sendEmail({ to, subject, html });
+  logger.info({ to, template, providerId }, "email.sent");
+}
+
+/** Job: commande du bot Telegram admin — l'envoi externe (sendMessage) a
+ * lieu ICI (worker), jamais dans la route webhook (CLAUDE.md §4). */
+export async function jobTelegramCommand({ chatId, text }: JobPayloads["telegramCommand"]) {
+  const command = text.trim().split(/\s+/)[0]?.toLowerCase();
+  let reply: string;
+  switch (command) {
+    case "/status":
+      reply = formatStatusMessage(await getOpsStatus());
+      break;
+    case "/leads":
+      reply = formatLeadsMessage(await getRecentQualifiedLeads(5));
+      break;
+    default:
+      reply = TELEGRAM_HELP_TEXT;
+  }
+  await sendTelegramMessage(chatId, reply);
 }
 
 /** Validation d'une sortie de régression (utilisé par prompts/regression/run.ts). */
